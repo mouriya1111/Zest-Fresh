@@ -1,0 +1,31 @@
+{
+  "name": "zest-fresh-backend",
+  "version": "1.0.0",
+  "description": "Node.js, Express, MongoDB, JWT, and Socket.IO backend for Zest Fresh grocery delivery.",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "create-master": "node src/utils/createMaster.js",
+    "check": "node --check src/server.js && node --check src/controllers/authController.js && node --check src/controllers/orderController.js && node --check src/controllers/productController.js && node --check src/controllers/analyticsController.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

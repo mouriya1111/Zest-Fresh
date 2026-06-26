@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Zest Fresh",
+    "slug": "zest-fresh",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "zestfresh",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zestfresh.app"
+    },
+    "android": {
+      "package": "com.zestfresh.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B7A3B"
+      }
+    },
+    "extra": {
+      "apiUrl": "http://localhost:5050"
+    }
+  }
+}
