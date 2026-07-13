@@ -13,9 +13,11 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: PAYMENT_GATEWAY
-        value: razorpay
+        value: cod
       - key: PAYMENT_CURRENCY
         value: INR
+      - key: REGISTRATION_MODE
+        value: direct
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET

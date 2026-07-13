@@ -268,12 +268,31 @@ async function resendRegistrationOtp(request, response, next) {
 }
 
 async function register(request, response, next) {
+  if ((process.env.REGISTRATION_MODE || "otp").trim().toLowerCase() === "direct") {
+    return legacyRegister(request, response, next);
+  }
   return requestRegistrationOtp(request, response, next);
 }
 
 async function legacyRegister(request, response, next) {
   try {
-    const { name, email, phone, password } = request.body;
+    const name = request.body.name?.trim();
+    const email = normalizeEmail(request.body.email);
+    const phone = normalizePhone(request.body.phone);
+    const { password } = request.body;
+
+    if (!name || !email || !phone || !password) {
+      return response.status(400).json(responseBody(false, "Name, email, mobile number, and password are required"));
+    }
+    if (!isValidEmail(email) || !isValidPhone(phone) || password.length < 6) {
+      return response.status(400).json(responseBody(false, "Enter valid account details and a password of at least 6 characters"));
+    }
+
+    const existingUser = await findExistingUser({ email, phone });
+    if (existingUser) {
+      return response.status(409).json(responseBody(false, "Email or mobile number already registered"));
+    }
+
     const passwordHash = await User.hashPassword(password);
     const user = await User.create({
       name,

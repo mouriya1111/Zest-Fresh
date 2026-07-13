@@ -1,10 +1,7 @@
 const REQUIRED_PRODUCTION_VALUES = [
   "MONGODB_URI",
   "JWT_SECRET",
-  "CORS_ORIGIN",
-  "RAZORPAY_KEY_ID",
-  "RAZORPAY_KEY_SECRET",
-  "RAZORPAY_WEBHOOK_SECRET"
+  "CORS_ORIGIN"
 ];
 
 function missing(name) {
@@ -41,9 +38,17 @@ function validateEnvironment() {
   if (jwtSecret.length < 32) errors.push("JWT_SECRET must contain at least 32 characters");
   if (!corsOrigins.length || corsOrigins.includes("*")) errors.push("CORS_ORIGIN must list explicit HTTPS origins");
   if (corsOrigins.some((origin) => !origin.startsWith("https://"))) errors.push("Every CORS_ORIGIN must use HTTPS");
-  if (process.env.RAZORPAY_KEY_ID?.startsWith("rzp_test_")) errors.push("RAZORPAY_KEY_ID must be a live key in production");
+  const paymentGateway = process.env.PAYMENT_GATEWAY?.trim().toLowerCase() || "cod";
+  if (paymentGateway === "razorpay") {
+    for (const name of ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_WEBHOOK_SECRET"]) {
+      if (missing(name)) errors.push(`${name} is required when PAYMENT_GATEWAY=razorpay`);
+    }
+    if (process.env.RAZORPAY_KEY_ID?.startsWith("rzp_test_")) errors.push("RAZORPAY_KEY_ID must be a live key in production");
+  }
 
-  validateOtpProvider(errors);
+  if ((process.env.REGISTRATION_MODE || "otp").trim().toLowerCase() !== "direct") {
+    validateOtpProvider(errors);
+  }
 
   if (errors.length) {
     throw new Error(`Invalid production configuration:\n- ${errors.join("\n- ")}`);

@@ -1,5 +1,12 @@
 import { api } from "./client";
 
+export function registerDirect(payload) {
+  return api("/api/auth/register", {
+    method: "POST",
+    body: payload
+  });
+}
+
 export function requestRegistrationOtp(payload) {
   return api("/api/auth/register/request-otp", {
     method: "POST",

@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
 import {
+  registerDirect,
   requestRegistrationOtp,
   resendRegistrationOtp,
   verifyRegistrationOtp
@@ -78,7 +79,7 @@ export function AuthProvider({ children }) {
   }
 
   async function register(values) {
-    return requestRegistrationOtp(values);
+    return persistSession(await registerDirect(values));
   }
 
   async function verifyRegisterOtp(values) {

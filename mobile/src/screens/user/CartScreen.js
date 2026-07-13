@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { Banknote, CreditCard, ShoppingBag, Smartphone } from "lucide-react-native";
+import { Banknote, ShoppingBag } from "lucide-react-native";
 import Button from "../../components/Button";
 import { useCart } from "../../context/CartContext";
 import { colors } from "../../theme/colors";
@@ -31,7 +31,7 @@ function formatCartLine(item) {
 export default function CartScreen({ navigation }) {
   const { items, subtotal, removeFromCart, changeQuantity, placeOrder, payOnline } = useCart();
   const [placing, setPlacing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const paymentMethod = "COD";
   const [checkoutError, setCheckoutError] = useState("");
   const deliveryFee = subtotal >= 499 || subtotal === 0 ? 0 : 29;
   const orderTotal = subtotal + deliveryFee;
@@ -126,10 +126,7 @@ export default function CartScreen({ navigation }) {
       </View>
       <View style={styles.paymentCard}>
         <Text style={styles.sectionTitle}>Payment method</Text>
-        <Pressable
-          style={paymentMethod === "COD" ? styles.paymentOptionActive : styles.paymentOption}
-          onPress={() => setPaymentMethod("COD")}
-        >
+        <Pressable style={styles.paymentOptionActive}>
           <Banknote size={21} color={colors.greenDark} />
           <View style={styles.paymentCopy}>
             <Text style={styles.paymentTitle}>Cash on Delivery</Text>
@@ -137,28 +134,7 @@ export default function CartScreen({ navigation }) {
           </View>
           {paymentMethod === "COD" ? <View style={styles.selectedDot} /> : null}
         </Pressable>
-        <Pressable
-          style={paymentMethod === "UPI" ? styles.paymentOptionActive : styles.paymentOption}
-          onPress={() => setPaymentMethod("UPI")}
-        >
-          <Smartphone size={21} color={paymentMethod === "UPI" ? colors.greenDark : colors.muted} />
-          <View style={styles.paymentCopy}>
-            <Text style={paymentMethod === "UPI" ? styles.paymentTitle : styles.paymentTitleDisabled}>UPI / Razorpay</Text>
-            <Text style={styles.paymentMeta}>Pay instantly using UPI apps</Text>
-          </View>
-          {paymentMethod === "UPI" ? <View style={styles.selectedDot} /> : null}
-        </Pressable>
-        <Pressable
-          style={paymentMethod === "Card" ? styles.paymentOptionActive : styles.paymentOption}
-          onPress={() => setPaymentMethod("Card")}
-        >
-          <CreditCard size={21} color={paymentMethod === "Card" ? colors.greenDark : colors.muted} />
-          <View style={styles.paymentCopy}>
-            <Text style={paymentMethod === "Card" ? styles.paymentTitle : styles.paymentTitleDisabled}>Credit / Debit Card</Text>
-            <Text style={styles.paymentMeta}>Cards, net banking, wallets and EMI via Razorpay</Text>
-          </View>
-          {paymentMethod === "Card" ? <View style={styles.selectedDot} /> : null}
-        </Pressable>
+        <Text style={styles.paymentMeta}>Online payments will be available soon.</Text>
       </View>
       <View style={styles.summary}>
         <View style={styles.summaryRows}>
