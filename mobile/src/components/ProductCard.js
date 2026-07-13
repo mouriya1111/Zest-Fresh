@@ -3,9 +3,59 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Heart, Minus, Plus, Zap } from "lucide-react-native";
 import { colors } from "../theme/colors";
 
+function formatVolume(ml) {
+  const amount = Number(ml || 0);
+  if (amount >= 1000) {
+    return `${amount / 1000} L`;
+  }
+  return `${amount} ml`;
+}
+
+function productPortion(product) {
+  if (product.soldBy === "weight") {
+    return `${product.weightStepGrams} g portion`;
+  }
+
+  if (product.soldBy === "volume") {
+    return `${formatVolume(product.volumeStepMl)} portion`;
+  }
+
+  return product.unit;
+}
+
+function productStock(product) {
+  const remaining = product.remainingStock ?? product.totalQuantity;
+
+  if (product.soldBy === "weight") {
+    return `${remaining * product.weightStepGrams} g available`;
+  }
+
+  if (product.soldBy === "volume") {
+    return `${formatVolume(remaining * product.volumeStepMl)} available`;
+  }
+
+  return `Stock ${remaining}`;
+}
+
+function productPrice(product) {
+  const displayPrice = product.effectivePrice ?? product.price;
+
+  if (product.soldBy === "weight") {
+    return `₹${displayPrice} / ${product.weightStepGrams} g`;
+  }
+
+  if (product.soldBy === "volume") {
+    return `₹${displayPrice} / ${formatVolume(product.volumeStepMl)}`;
+  }
+
+  return `₹${displayPrice}`;
+}
+
 export default function ProductCard({ product, quantity = 0, onAdd, onDecrease, onFavorite }) {
+  const isPurchasable = product.isPurchasable !== false && product.availableForSale !== false && (product.remainingStock ?? product.totalQuantity) > 0;
+
   return (
-    <View style={[styles.card, quantity > 0 && styles.selectedCard]}>
+    <View style={[styles.card, quantity > 0 && styles.selectedCard, !isPurchasable && styles.unavailableCard]}>
       <View style={styles.badge}>
         <Zap size={12} color={colors.greenDark} />
         <Text style={styles.badgeText}>10 min</Text>
@@ -17,18 +67,15 @@ export default function ProductCard({ product, quantity = 0, onAdd, onDecrease, 
       />
       <View style={styles.body}>
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
-        <Text style={styles.unit}>
-          {product.soldBy === "weight" ? `${product.weightStepGrams} g portion` : product.unit}
-        </Text>
-        <Text style={styles.stock}>
-          {product.soldBy === "weight"
-            ? `${(product.remainingStock ?? product.totalQuantity) * product.weightStepGrams} g available`
-            : `Stock ${product.remainingStock ?? product.totalQuantity}`}
+        <Text style={styles.unit}>{productPortion(product)}</Text>
+        <Text style={[styles.stock, !isPurchasable && styles.unavailableText]}>
+          {isPurchasable ? productStock(product) : (product.remainingStock ?? product.totalQuantity) <= 0 ? "Out of stock" : "Currently unavailable"}
         </Text>
         <View style={styles.row}>
-          <Text style={styles.price}>
-            ₹{product.price}{product.soldBy === "weight" ? ` / ${product.weightStepGrams} g` : ""}
-          </Text>
+          <View style={styles.priceBlock}>
+            <Text style={styles.price}>{productPrice(product)}</Text>
+            {product.mrp && product.mrp > (product.effectivePrice ?? product.price) ? <Text style={styles.mrp}>MRP ₹{product.mrp}</Text> : null}
+          </View>
           <View style={styles.actions}>
             {onFavorite ? (
               <Pressable onPress={() => onFavorite(product)} style={styles.iconButton}>
@@ -46,9 +93,9 @@ export default function ProductCard({ product, quantity = 0, onAdd, onDecrease, 
                 </Pressable>
               </View>
             ) : (
-              <Pressable onPress={() => onAdd?.(product)} style={styles.addButton}>
+              <Pressable disabled={!isPurchasable} onPress={() => onAdd?.(product)} style={[styles.addButton, !isPurchasable && styles.disabledButton]}>
                 <Plus size={18} color={colors.white} />
-                <Text style={styles.addText}>Add</Text>
+                <Text style={styles.addText}>{isPurchasable ? "Add" : "Off"}</Text>
               </Pressable>
             )}
           </View>
@@ -72,6 +119,9 @@ const styles = StyleSheet.create({
   selectedCard: {
     borderColor: colors.green,
     borderWidth: 2
+  },
+  unavailableCard: {
+    opacity: 0.72
   },
   badge: {
     position: "absolute",
@@ -115,6 +165,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "800"
   },
+  unavailableText: {
+    color: colors.warning
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -125,7 +178,15 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: colors.ink,
     fontSize: 13,
+  },
+  priceBlock: {
     flex: 1
+  },
+  mrp: {
+    color: colors.muted,
+    fontSize: 11,
+    textDecorationLine: "line-through",
+    marginTop: 2
   },
   actions: {
     flexDirection: "row",
@@ -149,6 +210,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 4,
     paddingHorizontal: 8
+  },
+  disabledButton: {
+    backgroundColor: colors.muted
   },
   addText: {
     color: colors.white,

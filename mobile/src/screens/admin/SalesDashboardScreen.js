@@ -5,7 +5,14 @@ import { api } from "../../api/client";
 import { colors } from "../../theme/colors";
 
 export default function SalesDashboardScreen() {
-  const [sales, setSales] = useState({ dailySales: [], monthlySales: [], bestSellers: [], userGrowth: [] });
+  const [sales, setSales] = useState({
+    dailySales: [],
+    monthlySales: [],
+    bestSellers: [],
+    userGrowth: [],
+    paymentMethods: [],
+    refunds: []
+  });
 
   useEffect(() => {
     api("/api/analytics/sales").then(setSales).catch(() => null);
@@ -37,6 +44,20 @@ export default function SalesDashboardScreen() {
         <View style={styles.row} key={item._id}>
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.meta}>{item.quantity} sold · ₹{item.revenue}</Text>
+        </View>
+      ))}
+      <Text style={styles.subtitle}>Payment method split</Text>
+      {sales.paymentMethods.map((item) => (
+        <View style={styles.row} key={item._id || "Unknown"}>
+          <Text style={styles.name}>{item._id || "Unknown"}</Text>
+          <Text style={styles.meta}>{item.count} payments · ₹{item.amount}</Text>
+        </View>
+      ))}
+      <Text style={styles.subtitle}>Refund trend</Text>
+      {sales.refunds.map((item) => (
+        <View style={styles.row} key={item._id}>
+          <Text style={styles.name}>{item._id}</Text>
+          <Text style={styles.meta}>{item.refunds} refunds · ₹{item.amount}</Text>
         </View>
       ))}
     </ScrollView>

@@ -4,14 +4,18 @@ const http = require("http");
 const { Server } = require("socket.io");
 const createApp = require("./app");
 const connectDatabase = require("./config/db");
+const validateEnvironment = require("./config/validateEnv");
 const registerPresence = require("./socket/presence");
+
+validateEnvironment();
 
 const PORT = process.env.PORT || 5000;
 const app = createApp();
 const server = http.createServer(app);
+const socketOrigins = process.env.CORS_ORIGIN?.split(",").map((origin) => origin.trim()).filter(Boolean);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(",") || "*",
+    origin: socketOrigins?.length ? socketOrigins : "*",
     credentials: true
   }
 });

@@ -3,6 +3,14 @@ import { FlatList, StyleSheet, Text, View } from "react-native";
 import { api } from "../../api/client";
 import { colors } from "../../theme/colors";
 
+function formatVolume(ml) {
+  const amount = Number(ml || 0);
+  if (amount >= 1000) {
+    return `${amount / 1000} L`;
+  }
+  return `${amount} ml`;
+}
+
 export default function InventoryScreen() {
   const [inventory, setInventory] = useState([]);
 
@@ -12,10 +20,14 @@ export default function InventoryScreen() {
 
   function inventorySummary(item) {
     if (item.soldBy === "weight") {
-      return `Total ${item.totalQuantity * item.weightStepGrams} g · Sold ${item.quantitySold * item.weightStepGrams} g · Remaining ${item.remainingStock * item.weightStepGrams} g`;
+      return `Total ${item.totalQuantity * item.weightStepGrams} g · Sold ${item.quantitySold * item.weightStepGrams} g · Reserved ${(item.reservedQuantity || 0) * item.weightStepGrams} g · Available ${item.remainingStock * item.weightStepGrams} g`;
     }
 
-    return `Total ${item.totalQuantity} · Sold ${item.quantitySold} · Remaining ${item.remainingStock}`;
+    if (item.soldBy === "volume") {
+      return `Total ${formatVolume(item.totalQuantity * item.volumeStepMl)} · Sold ${formatVolume(item.quantitySold * item.volumeStepMl)} · Reserved ${formatVolume((item.reservedQuantity || 0) * item.volumeStepMl)} · Available ${formatVolume(item.remainingStock * item.volumeStepMl)}`;
+    }
+
+    return `Total ${item.totalQuantity} · Sold ${item.quantitySold} · Reserved ${item.reservedQuantity || 0} · Available ${item.remainingStock}`;
   }
 
   return (
@@ -29,6 +41,7 @@ export default function InventoryScreen() {
             <Text style={styles.name}>{item.name}</Text>
             <Text style={styles.meta}>{inventorySummary(item)}</Text>
             {item.soldBy === "weight" ? <Text style={styles.portion}>Portion: {item.weightStepGrams} g at ₹{item.price}</Text> : null}
+            {item.soldBy === "volume" ? <Text style={styles.portion}>Portion: {formatVolume(item.volumeStepMl)} at ₹{item.price}</Text> : null}
             {item.isLowStock ? <Text style={styles.alert}>Low stock alert</Text> : null}
           </View>
         )}

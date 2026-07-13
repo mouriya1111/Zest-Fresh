@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import Button from "../../components/Button";
 import { useAuth } from "../../context/AuthContext";
 import { colors } from "../../theme/colors";
@@ -8,24 +8,34 @@ export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
+    if (!identifier.trim() || !password) {
+      Alert.alert("Login failed", "Enter email/mobile number and password.");
+      return;
+    }
+
     try {
+      setLoading(true);
       await login(identifier, password);
+      Alert.alert("Login successful", "Login successful");
     } catch (error) {
-      Alert.alert("Login failed", error.message);
+      Alert.alert("Login failed", error.message || "Network/server error");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
       <View style={styles.brand}>
-        <Text style={styles.logo}>Zest Fresh</Text>
+        <Image source={require("../../../assets/zest-fresh-brand.png")} style={styles.logo} resizeMode="contain" accessibilityLabel="Zest Fresh" />
         <Text style={styles.tagline}>Groceries at your doorstep</Text>
       </View>
       <TextInput style={styles.input} value={identifier} onChangeText={setIdentifier} placeholder="Email or phone" autoCapitalize="none" />
       <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
-      <Button title="Login" onPress={handleLogin} />
+      <Button title={loading ? "Logging in..." : "Login"} onPress={handleLogin} disabled={loading} />
       <Button title="Create customer account" variant="ghost" onPress={() => navigation.navigate("Register")} />
     </KeyboardAvoidingView>
   );
@@ -43,9 +53,9 @@ const styles = StyleSheet.create({
     marginBottom: 18
   },
   logo: {
-    fontSize: 36,
-    fontWeight: "900",
-    color: colors.greenDark
+    width: 250,
+    height: 73,
+    marginLeft: -10
   },
   tagline: {
     color: colors.muted,

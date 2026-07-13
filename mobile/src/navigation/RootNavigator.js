@@ -1,7 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { BarChart3, Home, LayoutDashboard, Package, ReceiptText, Search, ShoppingCart, User } from "lucide-react-native";
+import { BarChart3, CreditCard, Home, LayoutDashboard, Package, ReceiptText, Search, ShoppingCart, User } from "lucide-react-native";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { colors } from "../theme/colors";
@@ -17,6 +17,7 @@ import ProductManagementScreen from "../screens/admin/ProductManagementScreen";
 import InventoryScreen from "../screens/admin/InventoryScreen";
 import OrderManagementScreen from "../screens/admin/OrderManagementScreen";
 import SalesDashboardScreen from "../screens/admin/SalesDashboardScreen";
+import PaymentManagementScreen from "../screens/admin/PaymentManagementScreen";
 
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
@@ -51,6 +52,7 @@ function MasterTabs() {
       <Tabs.Screen name="Products" component={ProductManagementScreen} options={{ tabBarIcon: ({ color }) => <Package color={color} size={21} /> }} />
       <Tabs.Screen name="Inventory" component={InventoryScreen} options={{ tabBarIcon: ({ color }) => <Package color={color} size={21} /> }} />
       <Tabs.Screen name="Orders" component={OrderManagementScreen} options={{ tabBarIcon: ({ color }) => <ReceiptText color={color} size={21} /> }} />
+      <Tabs.Screen name="Payments" component={PaymentManagementScreen} options={{ tabBarIcon: ({ color }) => <CreditCard color={color} size={21} /> }} />
       <Tabs.Screen name="Sales" component={SalesDashboardScreen} options={{ tabBarIcon: ({ color }) => <BarChart3 color={color} size={21} /> }} />
     </Tabs.Navigator>
   );

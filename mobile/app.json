@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "scheme": "zestfresh",
     "userInterfaceStyle": "light",
+    "icon": "./assets/zest-fresh-icon.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zestfresh.app"
@@ -13,11 +14,17 @@
     "android": {
       "package": "com.zestfresh.app",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/zest-fresh-icon.png",
         "backgroundColor": "#0B7A3B"
       }
     },
-    "extra": {
-      "apiUrl": "http://localhost:5050"
-    }
+    "web": {
+      "favicon": "./assets/zest-fresh-icon.png",
+      "name": "Zest Fresh",
+      "shortName": "Zest Fresh"
+    },
+    "plugins": [
+      "expo-asset"
+    ]
   }
 }

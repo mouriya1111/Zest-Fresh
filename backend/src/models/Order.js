@@ -40,15 +40,19 @@ const orderSchema = new mongoose.Schema(
       default: "Pending",
       index: true
     },
-    paymentMethod: { type: String, enum: ["COD", "UPI", "Card"], default: "COD" },
+    paymentMethod: { type: String, enum: ["COD", "UPI", "Card", "NetBanking", "Wallet", "EMI"], default: "COD" },
     paymentStatus: {
       type: String,
-      enum: ["Pending", "Paid", "Failed", "Refunded"],
+      enum: ["Pending", "Paid", "Failed", "Refunded", "Partially Refunded"],
       default: "Pending",
       index: true
     },
     paidAt: Date,
     paymentReference: String,
+    payment: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
+    razorpayOrderId: String,
+    invoice: { type: mongoose.Schema.Types.ObjectId, ref: "Invoice" },
+    invoiceNumber: String,
     paymentStatusHistory: [
       {
         status: String,

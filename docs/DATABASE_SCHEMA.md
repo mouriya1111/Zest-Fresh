@@ -86,3 +86,101 @@
   activeUserIds: [UserId]
 }
 ```
+
+## Payment
+
+```js
+{
+  order: OrderId,
+  user: UserId,
+  gateway: "razorpay" | "cod",
+  gatewayOrderId: String,
+  gatewayPaymentId: String,
+  gatewaySignature: String,
+  amount: Number,
+  amountPaise: Number,
+  currency: "INR",
+  method: "UPI" | "Card" | "NetBanking" | "Wallet" | "EMI" | "COD" | "Unknown",
+  status: "Created" | "Pending" | "Authorized" | "Paid" | "Failed" | "Refunded" | "Partially Refunded",
+  attempts: Number,
+  failureCode: String,
+  failureReason: String,
+  gatewayPayload: Object,
+  verifiedAt: Date,
+  paidAt: Date
+}
+```
+
+## Transaction
+
+```js
+{
+  order: OrderId,
+  payment: PaymentId,
+  user: UserId,
+  gateway: "razorpay" | "cod",
+  gatewayEventId: String,
+  gatewayPaymentId: String,
+  type: "order_created" | "payment_authorized" | "payment_captured" | "payment_failed" | "refund_created" | "refund_processed" | "refund_failed",
+  amount: Number,
+  currency: "INR",
+  status: String,
+  payload: Object,
+  occurredAt: Date
+}
+```
+
+## Refund
+
+```js
+{
+  order: OrderId,
+  payment: PaymentId,
+  requestedBy: UserId,
+  gatewayRefundId: String,
+  amount: Number,
+  amountPaise: Number,
+  currency: "INR",
+  reason: String,
+  status: "Requested" | "Processing" | "Processed" | "Failed",
+  gatewayPayload: Object,
+  processedAt: Date
+}
+```
+
+## Invoice
+
+```js
+{
+  invoiceNumber: String,
+  order: OrderId,
+  payment: PaymentId,
+  user: UserId,
+  customerName: String,
+  customerEmail: String,
+  customerPhone: String,
+  items: [{ name, unit, quantity, price, total }],
+  subtotal: Number,
+  deliveryFee: Number,
+  gstAmount: Number,
+  total: Number,
+  paymentMethod: String,
+  paymentStatus: String,
+  currency: "INR",
+  issuedAt: Date
+}
+```
+
+## WebhookEvent
+
+```js
+{
+  gateway: "razorpay",
+  eventId: String,
+  eventType: String,
+  processed: Boolean,
+  payload: Object,
+  processedAt: Date,
+  error: String
+}
+```

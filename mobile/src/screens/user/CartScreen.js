@@ -5,9 +5,34 @@ import Button from "../../components/Button";
 import { useCart } from "../../context/CartContext";
 import { colors } from "../../theme/colors";
 
+function formatVolume(ml) {
+  const amount = Number(ml || 0);
+  if (amount >= 1000) {
+    return `${amount / 1000} L`;
+  }
+  return `${amount} ml`;
+}
+
+function formatCartLine(item) {
+  const itemPrice = item.product.effectivePrice ?? item.product.price;
+  const total = itemPrice * item.quantity;
+
+  if (item.product.soldBy === "weight") {
+    return `${item.quantity * item.product.weightStepGrams} g selected · ₹${total}`;
+  }
+
+  if (item.product.soldBy === "volume") {
+    return `${formatVolume(item.quantity * item.product.volumeStepMl)} selected · ₹${total}`;
+  }
+
+  return `${item.quantity} × ₹${itemPrice} · ₹${total}`;
+}
+
 export default function CartScreen({ navigation }) {
-  const { items, subtotal, removeFromCart, changeQuantity, placeOrder } = useCart();
+  const { items, subtotal, removeFromCart, changeQuantity, placeOrder, payOnline } = useCart();
   const [placing, setPlacing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [checkoutError, setCheckoutError] = useState("");
   const deliveryFee = subtotal >= 499 || subtotal === 0 ? 0 : 29;
   const orderTotal = subtotal + deliveryFee;
   const [address, setAddress] = useState({
@@ -34,14 +59,28 @@ export default function CartScreen({ navigation }) {
 
     try {
       setPlacing(true);
-      await placeOrder({
+      setCheckoutError("");
+      const deliveryAddress = {
         label: "Home",
         ...address
-      }, "COD");
-      Alert.alert("Order placed", "Your COD payment is pending until delivery.");
+      };
+
+      if (paymentMethod === "COD") {
+        await placeOrder(deliveryAddress, "COD");
+        Alert.alert("Order placed", "Your COD payment is pending until delivery.");
+      } else {
+        await payOnline(deliveryAddress, paymentMethod);
+        Alert.alert("Payment successful", "Your order is confirmed and invoice is ready.");
+      }
+
       navigation.navigate("Orders");
     } catch (error) {
-      Alert.alert("Could not place order", error.message);
+      const message = error.message || "You can retry payment from your Orders screen.";
+      setCheckoutError(message);
+      Alert.alert(
+        paymentMethod === "COD" ? "Could not place order" : "Payment not completed",
+        message
+      );
     } finally {
       setPlacing(false);
     }
@@ -63,11 +102,7 @@ export default function CartScreen({ navigation }) {
           <View style={styles.item} key={item.product._id}>
             <View>
               <Text style={styles.itemName}>{item.product.name}</Text>
-              <Text style={styles.itemMeta}>
-                {item.product.soldBy === "weight"
-                  ? `${item.quantity * item.product.weightStepGrams} g selected · ₹${item.product.price * item.quantity}`
-                  : `${item.quantity} × ₹${item.product.price} · ₹${item.product.price * item.quantity}`}
-              </Text>
+              <Text style={styles.itemMeta}>{formatCartLine(item)}</Text>
             </View>
             <View style={styles.qtyBox}>
               <Button title="-" variant="ghost" onPress={() => changeQuantity(item.product._id, -1)} style={styles.qtyButton} />
@@ -91,33 +126,38 @@ export default function CartScreen({ navigation }) {
       </View>
       <View style={styles.paymentCard}>
         <Text style={styles.sectionTitle}>Payment method</Text>
-        <View style={styles.paymentOptionActive}>
+        <Pressable
+          style={paymentMethod === "COD" ? styles.paymentOptionActive : styles.paymentOption}
+          onPress={() => setPaymentMethod("COD")}
+        >
           <Banknote size={21} color={colors.greenDark} />
           <View style={styles.paymentCopy}>
             <Text style={styles.paymentTitle}>Cash on Delivery</Text>
             <Text style={styles.paymentMeta}>Pay when your groceries arrive</Text>
           </View>
-          <View style={styles.selectedDot} />
-        </View>
-        <Pressable
-          style={styles.paymentOptionDisabled}
-          onPress={() => Alert.alert("UPI coming soon", "A payment gateway must be connected before accepting UPI payments.")}
-        >
-          <Smartphone size={21} color={colors.muted} />
-          <View style={styles.paymentCopy}>
-            <Text style={styles.paymentTitleDisabled}>UPI</Text>
-            <Text style={styles.paymentMeta}>Gateway setup required</Text>
-          </View>
+          {paymentMethod === "COD" ? <View style={styles.selectedDot} /> : null}
         </Pressable>
         <Pressable
-          style={styles.paymentOptionDisabled}
-          onPress={() => Alert.alert("Card coming soon", "A payment gateway must be connected before accepting card payments.")}
+          style={paymentMethod === "UPI" ? styles.paymentOptionActive : styles.paymentOption}
+          onPress={() => setPaymentMethod("UPI")}
         >
-          <CreditCard size={21} color={colors.muted} />
+          <Smartphone size={21} color={paymentMethod === "UPI" ? colors.greenDark : colors.muted} />
           <View style={styles.paymentCopy}>
-            <Text style={styles.paymentTitleDisabled}>Credit / Debit Card</Text>
-            <Text style={styles.paymentMeta}>Gateway setup required</Text>
+            <Text style={paymentMethod === "UPI" ? styles.paymentTitle : styles.paymentTitleDisabled}>UPI / Razorpay</Text>
+            <Text style={styles.paymentMeta}>Pay instantly using UPI apps</Text>
           </View>
+          {paymentMethod === "UPI" ? <View style={styles.selectedDot} /> : null}
+        </Pressable>
+        <Pressable
+          style={paymentMethod === "Card" ? styles.paymentOptionActive : styles.paymentOption}
+          onPress={() => setPaymentMethod("Card")}
+        >
+          <CreditCard size={21} color={paymentMethod === "Card" ? colors.greenDark : colors.muted} />
+          <View style={styles.paymentCopy}>
+            <Text style={paymentMethod === "Card" ? styles.paymentTitle : styles.paymentTitleDisabled}>Credit / Debit Card</Text>
+            <Text style={styles.paymentMeta}>Cards, net banking, wallets and EMI via Razorpay</Text>
+          </View>
+          {paymentMethod === "Card" ? <View style={styles.selectedDot} /> : null}
         </Pressable>
       </View>
       <View style={styles.summary}>
@@ -133,7 +173,12 @@ export default function CartScreen({ navigation }) {
         </View>
         <Text style={styles.total}>₹{orderTotal}</Text>
       </View>
-      <Button title={placing ? "Placing order..." : "Place COD order"} onPress={handlePlaceOrder} disabled={placing || !items.length} />
+      <Button
+        title={placing ? "Processing..." : paymentMethod === "COD" ? "Place COD order" : "Pay securely with Razorpay"}
+        onPress={handlePlaceOrder}
+        disabled={placing || !items.length}
+      />
+      {checkoutError ? <Text style={styles.checkoutError}>{checkoutError}</Text> : null}
     </ScrollView>
   );
 }
@@ -248,6 +293,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10
   },
+  paymentOption: {
+    minHeight: 58,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10
+  },
   paymentOptionDisabled: {
     minHeight: 58,
     borderRadius: 8,
@@ -332,5 +388,14 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 18,
     fontWeight: "900"
+  },
+  checkoutError: {
+    color: colors.danger,
+    backgroundColor: "#FEE2E2",
+    borderColor: colors.danger,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    fontWeight: "800"
   }
 });

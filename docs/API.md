@@ -46,6 +46,20 @@ Master login returns `redirectTo: "MasterDashboard"`.
 | PATCH | `/api/orders/:id/status` | Master | Accept, reject, pack, dispatch, deliver, cancel |
 | PATCH | `/api/orders/:id/payment` | Master | Confirm payment, mark failure, or record refund |
 
+## Payments
+
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/payments/create-order` | User | Create a Razorpay order and local payment record |
+| POST | `/api/payments/verify` | User | Verify Razorpay payment signature and mark order paid |
+| POST | `/api/payments/retry/:orderId` | User | Retry failed or pending online payment |
+| GET | `/api/payments` | User/Master | Payment history |
+| GET | `/api/payments/transactions` | User/Master | Transaction ledger |
+| POST | `/api/payments/:paymentId/refund` | Master | Request refund |
+| GET | `/api/payments/refunds` | Master | Refund history |
+| GET | `/api/payments/invoices/:orderId` | User/Master | Invoice details |
+| POST | `/api/payments/webhooks/razorpay` | Razorpay webhook | Verify and process gateway events |
+
 ## Users
 
 | Method | Path | Access | Purpose |

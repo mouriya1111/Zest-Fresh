@@ -1,5 +1,8 @@
 const Order = require("../models/Order");
+const Payment = require("../models/Payment");
 const Product = require("../models/Product");
+const Transaction = require("../models/Transaction");
+const { createInvoiceForOrder } = require("../services/invoiceService");
 
 const ACTIVE_STATUSES = ["Pending", "Accepted", "Packed", "Out for Delivery"];
 
@@ -25,18 +28,23 @@ async function createOrder(request, response, next) {
         return response.status(404).json({ message: `Product not found: ${item.productId}` });
       }
 
+      if (!product.isPurchasable) {
+        return response.status(409).json({ message: `${product.name} is currently unavailable` });
+      }
+
       if (product.remainingStock < item.quantity) {
         return response.status(409).json({ message: `${product.name} is out of stock` });
       }
 
-      const lineTotal = product.price * item.quantity;
+      const orderPrice = product.effectivePrice ?? product.price;
+      const lineTotal = orderPrice * item.quantity;
       subtotal += lineTotal;
       orderItems.push({
         product: product._id,
         name: product.name,
         unit: product.unit,
         quantity: item.quantity,
-        price: product.price,
+        price: orderPrice,
         imageUrl: product.imageUrl
       });
     }
@@ -54,6 +62,30 @@ async function createOrder(request, response, next) {
       paymentStatusHistory: [{ status: "Pending", changedBy: request.user._id }],
       statusHistory: [{ status: "Pending", changedBy: request.user._id }]
     });
+    const payment = await Payment.create({
+      order: order._id,
+      user: request.user._id,
+      gateway: "cod",
+      gatewayOrderId: `cod_${order._id}`,
+      amount: order.total,
+      amountPaise: Math.round(order.total * 100),
+      currency: process.env.PAYMENT_CURRENCY || "INR",
+      method: "COD",
+      status: "Pending"
+    });
+    order.payment = payment._id;
+    await order.save();
+    await Transaction.create({
+      order: order._id,
+      payment: payment._id,
+      user: request.user._id,
+      gateway: "cod",
+      type: "order_created",
+      amount: order.total,
+      currency: payment.currency,
+      status: "Pending",
+      payload: { paymentMethod: "COD" }
+    });
 
     const populatedOrder = await order.populate("user", "name email phone");
     request.app.get("io")?.to("masters").emit("order:new", { order: populatedOrder });
@@ -67,7 +99,7 @@ async function createOrder(request, response, next) {
 async function updatePaymentStatus(request, response, next) {
   try {
     const { paymentStatus, paymentReference } = request.body;
-    const validStatuses = ["Pending", "Paid", "Failed", "Refunded"];
+    const validStatuses = ["Pending", "Paid", "Failed", "Refunded", "Partially Refunded"];
 
     if (!validStatuses.includes(paymentStatus)) {
       return response.status(400).json({ message: "Invalid payment status" });
@@ -96,6 +128,32 @@ async function updatePaymentStatus(request, response, next) {
       reference: paymentReference
     });
     await order.save();
+    const payment = await Payment.findById(order.payment);
+
+    if (payment) {
+      payment.status = paymentStatus;
+      payment.gatewayPaymentId = paymentReference || payment.gatewayPaymentId;
+      payment.paidAt = paymentStatus === "Paid" ? new Date() : payment.paidAt;
+      payment.verifiedAt = paymentStatus === "Paid" ? new Date() : payment.verifiedAt;
+      await payment.save();
+
+      await Transaction.create({
+        order: order._id,
+        payment: payment._id,
+        user: order.user,
+        gateway: payment.gateway,
+        gatewayPaymentId: payment.gatewayPaymentId,
+        type: paymentStatus === "Paid" ? "payment_captured" : "payment_failed",
+        amount: order.total,
+        currency: payment.currency,
+        status: paymentStatus,
+        payload: { changedBy: request.user._id, reference: paymentReference }
+      });
+
+      if (paymentStatus === "Paid") {
+        await createInvoiceForOrder(order, payment, await order.populate("user", "name email phone").then((item) => item.user));
+      }
+    }
 
     request.app.get("io")?.to(`user:${order.user}`).emit("order:payment", {
       orderId: order._id,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../api/client";
@@ -37,12 +37,22 @@ export default function MasterDashboardScreen() {
     ["Daily active users", overview?.dailyActiveUsers || 0],
     ["New registrations", overview?.newRegistrations || 0],
     ["Collected revenue", `₹${overview?.totalRevenue || 0}`],
-    ["Payments pending", `${overview?.pendingPaymentCount || 0} · ₹${overview?.pendingPaymentAmount || 0}`]
+    ["Online revenue", `₹${overview?.onlineRevenue || 0}`],
+    ["Payments pending", `${overview?.pendingPaymentCount || 0} · ₹${overview?.pendingPaymentAmount || 0}`],
+    ["Payment success", `${overview?.paymentSuccessRate || 0}%`],
+    ["Failed transactions", overview?.failedTransactions || 0],
+    ["Refunds", `${overview?.refundCount || 0} · ₹${overview?.refundAmount || 0}`]
   ];
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Master Dashboard</Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Master Dashboard</Text>
+          <Text style={styles.subtitle}>Revenue, users, orders, and payment health</Text>
+        </View>
+        <Button title="Logout" variant="ghost" onPress={logout} style={styles.logoutButton} />
+      </View>
       <View style={styles.grid}>
         {cards.map(([label, value]) => (
           <View style={styles.card} key={label}>
@@ -51,23 +61,39 @@ export default function MasterDashboardScreen() {
           </View>
         ))}
       </View>
-      <Button title="Logout" variant="ghost" onPress={logout} />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.surface
+  },
+  content: {
     paddingTop: 56,
     paddingHorizontal: 16,
-    backgroundColor: colors.surface
+    paddingBottom: 28
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+    marginBottom: 14
   },
   title: {
     fontSize: 26,
     fontWeight: "900",
-    color: colors.ink,
-    marginBottom: 14
+    color: colors.ink
+  },
+  subtitle: {
+    color: colors.muted,
+    marginTop: 4
+  },
+  logoutButton: {
+    height: 40,
+    minWidth: 92
   },
   grid: {
     flexDirection: "row",

@@ -6,6 +6,8 @@
   "scripts": {
     "backend": "npm --prefix backend run dev",
     "mobile": "npm --prefix mobile start",
-    "check": "npm --prefix backend run check"
+    "build": "npm --prefix mobile run web:build",
+    "check": "npm --prefix backend run check",
+    "production:check": "npm run check && npm run build"
   }
 }

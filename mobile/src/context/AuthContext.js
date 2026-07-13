@@ -1,6 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
+import {
+  requestRegistrationOtp,
+  resendRegistrationOtp,
+  verifyRegistrationOtp
+} from "../api/auth";
 import { createSocket } from "../api/socket";
 
 const AuthContext = createContext(null);
@@ -13,15 +18,29 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     async function restoreSession() {
-      const savedToken = await AsyncStorage.getItem("zestFreshToken");
-      const savedUser = await AsyncStorage.getItem("zestFreshUser");
+      try {
+        const savedToken = await AsyncStorage.getItem("zestFreshToken");
+        const savedUser = await AsyncStorage.getItem("zestFreshUser");
 
-      if (savedToken && savedUser) {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+        if (savedToken) {
+          const session = await api("/api/auth/me", { authToken: savedToken });
+          const restoredUser = session.user || (savedUser ? JSON.parse(savedUser) : null);
+
+          if (!restoredUser) {
+            throw new Error("Session user missing");
+          }
+
+          await AsyncStorage.setItem("zestFreshUser", JSON.stringify(restoredUser));
+          setToken(savedToken);
+          setUser(restoredUser);
+        }
+      } catch (_error) {
+        await AsyncStorage.multiRemove(["zestFreshToken", "zestFreshUser"]);
+        setToken(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     restoreSession();
@@ -51,17 +70,23 @@ export function AuthProvider({ children }) {
   }
 
   async function login(identifier, password) {
-    return persistSession(await api("/api/auth/login", {
+    const redirectTo = await persistSession(await api("/api/auth/login", {
       method: "POST",
       body: { identifier, password }
     }));
+    return redirectTo;
   }
 
   async function register(values) {
-    return persistSession(await api("/api/auth/register", {
-      method: "POST",
-      body: values
-    }));
+    return requestRegistrationOtp(values);
+  }
+
+  async function verifyRegisterOtp(values) {
+    return verifyRegistrationOtp(values);
+  }
+
+  async function resendRegisterOtp(values) {
+    return resendRegistrationOtp(values);
   }
 
   async function logout() {
@@ -73,7 +98,7 @@ export function AuthProvider({ children }) {
   }
 
   const value = useMemo(
-    () => ({ token, user, socket, loading, login, register, logout }),
+    () => ({ token, user, socket, loading, login, register, verifyRegisterOtp, resendRegisterOtp, logout }),
     [token, user, socket, loading]
   );
 

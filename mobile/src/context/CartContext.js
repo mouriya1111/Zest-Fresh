@@ -1,11 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
+import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from "../api/payments";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext(null);
 const CART_KEY = "zestFreshCart";
 
 export function CartProvider({ children }) {
+  const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [hydrated, setHydrated] = useState(false);
 
@@ -71,11 +74,39 @@ export function CartProvider({ children }) {
     return data.order;
   }
 
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  async function payOnline(deliveryAddress, paymentMethod = "UPI") {
+    const payload = {
+      deliveryAddress,
+      paymentMethod,
+      items: items.map((item) => ({
+        productId: item.product._id,
+        quantity: item.quantity
+      }))
+    };
+    const created = await createRazorpayOrder(payload);
+    const result = await openRazorpayCheckout({
+      gateway: created.gateway,
+      order: created.order,
+      user
+    });
+    const verified = await verifyRazorpayPayment({
+      localOrderId: created.order._id,
+      localPaymentId: created.payment._id,
+      razorpay_order_id: result.razorpay_order_id,
+      razorpay_payment_id: result.razorpay_payment_id,
+      razorpay_signature: result.razorpay_signature
+    });
+
+    setItems([]);
+    await AsyncStorage.removeItem(CART_KEY);
+    return verified.order;
+  }
+
+  const subtotal = items.reduce((sum, item) => sum + (item.product.effectivePrice ?? item.product.price) * item.quantity, 0);
 
   const value = useMemo(
-    () => ({ items, subtotal, addToCart, removeFromCart, changeQuantity, placeOrder }),
-    [items, subtotal]
+    () => ({ items, subtotal, addToCart, removeFromCart, changeQuantity, placeOrder, payOnline }),
+    [items, subtotal, user]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
