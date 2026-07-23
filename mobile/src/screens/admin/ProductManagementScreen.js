@@ -42,6 +42,8 @@ export default function ProductManagementScreen() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [saveStatus, setSaveStatus] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   const scrollRef = useRef(null);
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
@@ -56,12 +58,14 @@ export default function ProductManagementScreen() {
   useEffect(loadProducts, []);
 
   function setField(field, value) {
+    setSaveStatus(null);
     setForm((current) => ({ ...current, [field]: value }));
   }
 
   function resetForm() {
     setForm(emptyForm);
     setEditingProduct(null);
+    setSaveStatus(null);
   }
 
   function startEdit(product) {
@@ -94,27 +98,64 @@ export default function ProductManagementScreen() {
   }
 
   async function saveProduct() {
+    const name = form.name.trim();
+    const category = form.category.trim();
+    const unit = form.unit.trim();
+    const price = Number(form.price);
+    const availableStock = Number(form.totalQuantity);
+
+    if (!name) {
+      setSaveStatus({ type: "error", message: "Product name is required." });
+      return;
+    }
+
+    if (!category) {
+      setSaveStatus({ type: "error", message: "Category is required." });
+      return;
+    }
+
+    if (!form.soldByWeight && !form.soldByVolume && !unit) {
+      setSaveStatus({ type: "error", message: "Unit is required, for example 1 kg, 1 bottle, or 1 piece." });
+      return;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+      setSaveStatus({ type: "error", message: "Enter a valid price." });
+      return;
+    }
+
+    if (!Number.isFinite(availableStock) || availableStock < 0) {
+      setSaveStatus({ type: "error", message: "Enter a valid available stock quantity." });
+      return;
+    }
+
     if (form.soldByWeight && (!Number(form.weightStepGrams) || Number(form.weightStepGrams) < 1)) {
+      setSaveStatus({ type: "error", message: "Enter a valid gram quantity, such as 50." });
       Alert.alert("Weight needed", "Enter a valid gram quantity, such as 50.");
       return;
     }
 
     if (form.soldByVolume && (!Number(form.volumeStepMl) || Number(form.volumeStepMl) < 1)) {
+      setSaveStatus({ type: "error", message: "Enter a valid ml quantity, such as 500." });
       Alert.alert("Volume needed", "Enter a valid ml quantity, such as 500.");
       return;
     }
 
+    setIsSaving(true);
+    setSaveStatus(null);
+
     try {
       const { soldByWeight, soldByVolume, weightStepGrams, volumeStepMl, ...productFields } = form;
-      const availableStock = Number(form.totalQuantity);
       const soldBy = soldByWeight ? "weight" : soldByVolume ? "volume" : "unit";
       const payload = {
         ...productFields,
+        name,
+        category,
         soldBy,
         weightStepGrams: soldByWeight ? Number(weightStepGrams) : null,
         volumeStepMl: soldByVolume ? Number(volumeStepMl) : null,
-        unit: soldByWeight ? `${Number(weightStepGrams)} g` : soldByVolume ? formatVolume(volumeStepMl) : form.unit,
-        price: Number(form.price),
+        unit: soldByWeight ? `${Number(weightStepGrams)} g` : soldByVolume ? formatVolume(volumeStepMl) : unit,
+        price,
         mrp: form.mrp ? Number(form.mrp) : null,
         offerPrice: form.offerPrice ? Number(form.offerPrice) : null,
         totalQuantity: editingProduct ? editingProduct.quantitySold + availableStock : availableStock,
@@ -130,8 +171,12 @@ export default function ProductManagementScreen() {
       });
       resetForm();
       loadProducts();
+      setSaveStatus({ type: "success", message: editingProduct ? "Product updated." : "Product added." });
     } catch (error) {
+      setSaveStatus({ type: "error", message: error.message || "Product was not saved." });
       Alert.alert("Product not saved", error.message);
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -367,7 +412,12 @@ export default function ProductManagementScreen() {
           <TextInput style={styles.imageInput} value={form.imageUrl} onChangeText={(text) => setField("imageUrl", text)} placeholder="Paste product image URL" autoCapitalize="none" />
         </View>
         {form.imageUrl ? <Image source={{ uri: form.imageUrl }} style={styles.preview} resizeMode="contain" /> : null}
-        <Button title={editingProduct ? "Save changes" : "Add item"} onPress={saveProduct} />
+        <Button title={isSaving ? "Saving..." : editingProduct ? "Save changes" : "Add item"} onPress={saveProduct} disabled={isSaving} />
+        {saveStatus ? (
+          <Text style={[styles.saveStatus, saveStatus.type === "error" ? styles.saveError : styles.saveSuccess]}>
+            {saveStatus.message}
+          </Text>
+        ) : null}
       </View>
       {products.map((item) => (
         <View style={[styles.row, !isWeb && styles.nativeRow, isWideNative && styles.nativeWideRow]} key={item._id}>
@@ -436,6 +486,9 @@ const styles = StyleSheet.create({
   flagToggle: { width: "48%", minHeight: 50, borderRadius: 8, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   flagLabel: { color: colors.ink, fontWeight: "800", flex: 1 },
   pricePreview: { color: colors.greenDark, backgroundColor: colors.greenSoft, padding: 10, borderRadius: 8, fontWeight: "900" },
+  saveStatus: { borderRadius: 8, padding: 10, fontWeight: "800" },
+  saveError: { color: colors.warning, backgroundColor: "#FFF4E8" },
+  saveSuccess: { color: colors.greenDark, backgroundColor: colors.greenSoft },
   imagePaste: { height: 48, borderRadius: 8, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8 },
   imageInput: { flex: 1, height: "100%" },
   preview: { width: "100%", height: 150, borderRadius: 8, backgroundColor: colors.greenSoft },

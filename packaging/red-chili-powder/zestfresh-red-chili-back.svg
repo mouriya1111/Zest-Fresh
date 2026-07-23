@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="136mm" height="206mm" viewBox="0 0 136 206">
+  <title>ZestFresh Premium Red Chili Powder - Back Artwork</title>
+  <metadata>Artboard 136 x 206 mm; trim 130 x 200 mm at x=3,y=3; bleed 3 mm; safe area 8 mm inside trim. CMYK targets: crimson C15 M100 Y80 K25; black C75 M68 Y67 K90; gold C20 M35 Y85 K15.</metadata>
+
+  <defs>
+    <linearGradient id="crimsonGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#33070d"/>
+      <stop offset="0.58" stop-color="#0d0c0e"/>
+      <stop offset="1" stop-color="#720c18"/>
+    </linearGradient>
+    <pattern id="geometry" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(28)">
+      <path d="M0 0V12" stroke="#8d1521" stroke-width="0.22" opacity="0.32"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.4" flood-color="#000" flood-opacity="0.7"/>
+    </filter>
+    <clipPath id="heroClip"><rect x="12" y="83" width="112" height="72" rx="9"/></clipPath>
+    <style>
+      .sans{font-family:Montserrat,Arial,sans-serif}.serif{font-family:Georgia,'Times New Roman',serif}
+      .white{fill:#fff}.gold{fill:#d8b35b}.muted{fill:#d7d0c9}.caps{letter-spacing:1.1px}
+      .tiny{font-size:4.6px}.small{font-size:5.5px}.body{font-size:5.2px}
+      .guide{display:none;fill:none;stroke:#00a7ff;stroke-width:.2;stroke-dasharray:2 1}
+    </style>
+  </defs>
+
+  <g id="BACKGROUND" inkscape:groupmode="layer">
+    <rect width="136" height="206" fill="url(#crimsonGlow)"/><rect width="136" height="206" fill="url(#geometry)"/>
+    <rect x="5.5" y="5.5" width="125" height="195" rx="4" fill="none" stroke="#d8b35b" stroke-width=".55"/>
+    <rect x="7.2" y="7.2" width="121.6" height="191.6" rx="3.4" fill="none" stroke="#d8b35b" stroke-width=".18"/>
+  </g>
+  <g id="BRAND" inkscape:groupmode="layer">
+    <g id="zestfresh-logo" aria-label="ZestFresh logo">
+      <circle cx="68" cy="16.5" r="5.5" fill="#9e1424" stroke="#d8b35b" stroke-width=".55"/>
+      <path d="M65.53 14.96 L68 17.88 L70.75 14.57" fill="none" stroke="#fff" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="68" y="24.7" text-anchor="middle" class="serif white" font-size="7.2" font-weight="700">ZestFresh</text>
+      <text x="68" y="28.3" text-anchor="middle" class="sans gold caps" font-size="2.3">PURE SPICES  |  HONEST FLAVOR</text>
+    </g><text x="68" y="34" text-anchor="middle" class="sans gold caps" font-size="4.7" font-weight="800">PREMIUM RED CHILI POWDER</text></g>
+  <g id="COPY" inkscape:groupmode="layer">
+    <rect x="11" y="40" width="54" height="6" rx="2.4" fill="#9e1424"/><text x="14" y="44.3" class="sans white caps" font-size="2.7" font-weight="700">PRODUCT STORY</text><rect x="70" y="40" width="55" height="6" rx="2.4" fill="#9e1424"/><text x="73" y="44.3" class="sans white caps" font-size="2.7" font-weight="700">INGREDIENTS</text>
+    <text x="12" y="50" class="sans muted body"><tspan x="12">ZestFresh Premium Red Chili Powder is carefully</tspan><tspan x="12" dy="3.2">selected and finely ground for vivid color, authentic</tspan><tspan x="12" dy="3.2">aroma and balanced heat in everyday cooking.</tspan></text>
+    <text x="71" y="50" class="sans muted body"><tspan x="71">100% dried red chilies.</tspan><tspan x="71" dy="3.2">No added color, preservative or filler.</tspan></text>
+    <rect x="11" y="67" width="54" height="6" rx="2.4" fill="#9e1424"/><text x="14" y="71.3" class="sans white caps" font-size="2.7" font-weight="700">USAGE SUGGESTIONS</text><rect x="70" y="67" width="55" height="6" rx="2.4" fill="#9e1424"/><text x="73" y="71.3" class="sans white caps" font-size="2.7" font-weight="700">STORAGE</text>
+    <text x="12" y="77" class="sans muted body"><tspan x="12">Ideal for curries, marinades, dals, chutneys, snacks</tspan><tspan x="12" dy="3.2">and spice blends. Add gradually to taste.</tspan></text>
+    <text x="71" y="77" class="sans muted body"><tspan x="71">Store in a cool, dry place away from sunlight.</tspan><tspan x="71" dy="3.2">Reseal after use. Use a clean, dry spoon.</tspan></text>
+  </g>
+  <g id="NUTRITION" inkscape:groupmode="layer">
+    <rect x="11" y="94" width="114" height="6" rx="2.4" fill="#9e1424"/><text x="14" y="98.3" class="sans white caps" font-size="2.7" font-weight="700">NUTRITIONAL INFORMATION</text>
+    <text x="12" y="104" class="sans gold" font-size="2.45" font-weight="700">APPROXIMATE VALUES PER 100 g - SAMPLE ONLY; VERIFY BY NABL LAB</text>
+    <rect x="11" y="108" width="114" height="28" fill="#100e10" stroke="#d8b35b" stroke-width=".25"/>
+    <path d="M11 115H125M11 122H125M11 129H125M67 108V136" stroke="#d8b35b" stroke-width=".18"/>
+    <g class="sans white" font-size="2.55">
+      <text x="13" y="113">Energy</text><text x="64" y="113" text-anchor="end" font-weight="700">398 kcal</text><text x="69" y="113">Protein</text><text x="122" y="113" text-anchor="end" font-weight="700">12.0 g</text>
+      <text x="13" y="120">Carbohydrate</text><text x="64" y="120" text-anchor="end" font-weight="700">49.0 g</text><text x="69" y="120">Total Sugars</text><text x="122" y="120" text-anchor="end" font-weight="700">7.2 g</text>
+      <text x="13" y="127">Total Fat</text><text x="64" y="127" text-anchor="end" font-weight="700">17.0 g</text><text x="69" y="127">Saturated Fat</text><text x="122" y="127" text-anchor="end" font-weight="700">3.3 g</text>
+      <text x="13" y="134">Sodium</text><text x="64" y="134" text-anchor="end" font-weight="700">30 mg</text><text x="69" y="134">Dietary Fibre</text><text x="122" y="134" text-anchor="end" font-weight="700">27.0 g</text>
+    </g>
+  </g>
+  <g id="VARIABLE_DATA" inkscape:groupmode="layer">
+    <rect x="11" y="139" width="55" height="6" rx="2.4" fill="#9e1424"/><text x="14" y="143.3" class="sans white caps" font-size="2.7" font-weight="700">PACK &amp; PRICE DETAILS</text><rect x="70" y="139" width="55" height="6" rx="2.4" fill="#9e1424"/><text x="73" y="143.3" class="sans white caps" font-size="2.7" font-weight="700">MANUFACTURING DETAILS</text>
+    <rect x="11" y="147" width="55" height="24" rx="2.5" fill="#100e10" stroke="#d8b35b" stroke-width=".3"/>
+    <g class="sans white" font-size="2.4"><text x="13" y="152" class="gold" font-weight="700">BATCH NO.</text><text x="64" y="152" text-anchor="end">[BATCH]</text><text x="13" y="157.1" class="gold" font-weight="700">MRP (INCL. TAXES)</text><text x="64" y="157.1" text-anchor="end">Rs [MRP]</text><text x="13" y="162.2" class="gold" font-weight="700">PACKED DATE</text><text x="64" y="162.2" text-anchor="end">[MM/YYYY]</text><text x="13" y="167.3" class="gold" font-weight="700">BEST BEFORE</text><text x="64" y="167.3" text-anchor="end">[MM/YYYY]</text></g>
+    <rect x="70" y="147" width="55" height="24" rx="2.5" fill="#100e10" stroke="#d8b35b" stroke-width=".3"/>
+    <g class="sans white" font-size="2.3"><text x="72" y="152" class="gold" font-weight="700">Manufactured &amp; Packed by:</text><text x="72" y="156.5" font-weight="700">[LEGAL ENTITY NAME]</text><text x="72" y="161">[FULL POSTAL ADDRESS, INDIA]</text><text x="72" y="165.5" font-weight="700">FSSAI Lic. No.: [14-DIGIT LICENSE]</text><text x="72" y="169.5">Country of Origin: India</text></g>
+    <text x="68" y="175" text-anchor="middle" class="sans white" font-size="2.25" font-weight="700">Customer Care: [PHONE]  |  [EMAIL]  |  www.zestfresh.in</text>
+  </g>
+  <g id="CODES_AND_MARKS" inkscape:groupmode="layer">
+    <rect x="10.5" y="177.5" width="16" height="16" fill="#fff"/><image x="11" y="178" width="15" height="15" xlink:href="assets/qr-zestfresh.svg"/><text x="18.5" y="195" text-anchor="middle" class="sans gold" font-size="1.8" font-weight="700">SCAN TO VISIT</text>
+    <rect x="30.5" y="178.5" width="43" height="14" fill="#fff"/><image x="31" y="179" width="42" height="13" xlink:href="assets/barcode-placeholder.svg"/><text x="52" y="195" text-anchor="middle" class="sans gold" font-size="1.8" font-weight="700">PLACEHOLDER GTIN - REPLACE</text>
+    <rect x="79" y="179" width="11" height="11" fill="#fff" stroke="#159447" stroke-width=".55"/><circle cx="84.5" cy="184.5" r="3.1" fill="#159447"/><text x="84.5" y="195" text-anchor="middle" class="sans white" font-size="1.9" font-weight="700">VEG</text>
+    <circle cx="99" cy="184.5" r="5.2" fill="none" stroke="#d8b35b" stroke-width=".8"/><path d="M96 185l2.2-3.8 2.2 3.8m-4.4 0h4.4l-2.2 3.7z" fill="none" stroke="#d8b35b" stroke-width=".55"/><text x="99" y="195" text-anchor="middle" class="sans white" font-size="1.9" font-weight="700">RECYCLE</text>
+    <text x="117" y="182" text-anchor="middle" class="sans gold" font-size="2.4" font-weight="700">MADE</text><text x="117" y="188" text-anchor="middle" class="sans white" font-size="3.2" font-weight="800">IN INDIA</text><text x="117" y="193" text-anchor="middle" class="serif gold" font-size="2.2" font-style="italic">with care</text>
+  </g>
+  <g id="NON_PRINTING_GUIDES" inkscape:groupmode="layer" class="guide">
+    <rect x="3" y="3" width="130" height="200"/>
+    <rect x="11" y="11" width="114" height="184"/>
+    <path d="M3 21H133M3 185H133"/>
+  </g>
+</svg>

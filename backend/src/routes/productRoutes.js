@@ -13,7 +13,10 @@ const {
 } = require("../controllers/productController");
 const { authenticate, authorize } = require("../middleware/auth");
 
-const upload = multer({ dest: "uploads/" });
+const uploadDirectory = process.env.VERCEL || process.env.NODE_ENV === "production"
+  ? "/tmp/zest-fresh-uploads"
+  : "uploads/";
+const upload = multer({ dest: uploadDirectory });
 const router = express.Router();
 
 router.get("/", listProducts);
