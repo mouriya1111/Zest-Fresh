@@ -17,7 +17,7 @@
       }
     },
     "extra": {
-      "apiUrl": "http://localhost:5050"
+      "apiUrl": "https://backend-eta-woad-47.vercel.app"
     }
   }
 }
