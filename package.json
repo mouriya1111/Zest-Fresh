@@ -1,0 +1,11 @@
+{
+  "name": "zest-fresh",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack grocery delivery app with React Native, Node.js, MongoDB, JWT RBAC, and Socket.IO.",
+  "scripts": {
+    "backend": "npm --prefix backend run dev",
+    "mobile": "npm --prefix mobile start",
+    "check": "npm --prefix backend run check"
+  }
+}
