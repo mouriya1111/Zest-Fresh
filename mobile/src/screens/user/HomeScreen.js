@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Image, StyleSheet, Text, TextInput, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { MapPin, Search, Sparkles } from "lucide-react-native";
 import ProductCard from "../../components/ProductCard";
@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import { colors } from "../../theme/colors";
 
 const categories = ["Fruits", "Vegetables", "Dairy", "Snacks", "Bakery", "Beverages"];
+const logo = require("../../../assets/zestfresh-logo.png");
 
 export default function HomeScreen({ navigation }) {
   const [products, setProducts] = useState([]);
@@ -45,7 +46,7 @@ export default function HomeScreen({ navigation }) {
             </View>
           ) : null}
         </View>
-        <Text style={styles.brand}>Zest Fresh</Text>
+        <Image source={logo} style={styles.logo} resizeMode="contain" />
         <Text style={styles.heroText}>Daily essentials, fruits, snacks, dairy and more.</Text>
       </View>
       <View style={styles.searchBox}>
@@ -135,11 +136,11 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     overflow: "hidden"
   },
-  brand: {
-    fontSize: 34,
-    fontWeight: "900",
-    color: colors.greenDark,
-    marginTop: 8
+  logo: {
+    width: 210,
+    height: 104,
+    marginTop: 8,
+    alignSelf: "flex-start"
   },
   heroText: {
     color: colors.muted,

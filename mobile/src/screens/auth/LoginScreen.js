@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import Button from "../../components/Button";
 import { useAuth } from "../../context/AuthContext";
 import { colors } from "../../theme/colors";
+
+const logo = require("../../../assets/zestfresh-logo.png");
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
@@ -23,7 +25,7 @@ export default function LoginScreen({ navigation }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
       <View style={styles.brand}>
-        <Text style={styles.logo}>Zest Fresh</Text>
+        <Image source={logo} style={styles.logo} resizeMode="contain" />
         <Text style={styles.tagline}>Groceries at your doorstep</Text>
       </View>
       <TextInput style={styles.input} value={identifier} onChangeText={setIdentifier} placeholder="Email or phone" autoCapitalize="none" />
@@ -46,9 +48,9 @@ const styles = StyleSheet.create({
     marginBottom: 18
   },
   logo: {
-    fontSize: 36,
-    fontWeight: "900",
-    color: colors.greenDark
+    width: 230,
+    height: 128,
+    alignSelf: "center"
   },
   tagline: {
     color: colors.muted,

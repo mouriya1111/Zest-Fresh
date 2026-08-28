@@ -4,6 +4,7 @@
     "slug": "zest-fresh",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/zestfresh-logo.png",
     "scheme": "zestfresh",
     "userInterfaceStyle": "light",
     "ios": {
