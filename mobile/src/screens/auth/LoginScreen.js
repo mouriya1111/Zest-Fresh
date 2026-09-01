@@ -24,9 +24,10 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
+      <Text style={styles.backLink} onPress={() => navigation.navigate("Shop")}>Back to Home</Text>
       <View style={styles.brand}>
         <Image source={logo} style={styles.logo} resizeMode="contain" />
-        <Text style={styles.tagline}>Groceries at your doorstep</Text>
+        <Text style={styles.tagline}>Taste the freshness</Text>
       </View>
       <TextInput style={styles.input} value={identifier} onChangeText={setIdentifier} placeholder="Email or phone" autoCapitalize="none" />
       <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
@@ -54,7 +55,19 @@ const styles = StyleSheet.create({
   },
   tagline: {
     color: colors.muted,
-    marginTop: 6
+    marginTop: 6,
+    fontWeight: "700",
+    textTransform: "uppercase"
+  },
+  backLink: {
+    alignSelf: "flex-start",
+    color: colors.greenDark,
+    backgroundColor: colors.greenSoft,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 8,
+    fontWeight: "900",
+    overflow: "hidden"
   },
   input: {
     height: 50,

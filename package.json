@@ -6,6 +6,7 @@
   "scripts": {
     "backend": "npm --prefix backend run dev",
     "mobile": "npm --prefix mobile start",
+    "build:web": "npm --prefix mobile install && npm --prefix mobile run build:web && rm -rf dist && cp -R mobile/dist dist",
     "check": "npm --prefix backend run check"
   }
 }
