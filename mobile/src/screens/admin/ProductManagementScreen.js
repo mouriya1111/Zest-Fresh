@@ -198,7 +198,7 @@ export default function ProductManagementScreen() {
             <Button title="Add option" variant="ghost" onPress={addVariantRow} style={styles.optionButton} />
           </View>
           {form.variants.map((variant, index) => (
-            <View style={styles.variantRow} key={`${index}-${variant.label}`}>
+            <View style={styles.variantRow} key={`variant-option-${index}`}>
               <TextInput
                 style={[styles.input, styles.variantInput]}
                 value={variant.label}
