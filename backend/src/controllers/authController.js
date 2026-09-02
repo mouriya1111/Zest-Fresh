@@ -18,16 +18,23 @@ async function incrementRegistrationMetric() {
 async function register(request, response, next) {
   try {
     const { name, email, phone, password } = request.body;
+    const normalizedPhone = phone?.replace(/\D/g, "");
+    const normalizedEmail = email?.trim().toLowerCase();
 
-    if (!name || !password || (!email && !phone)) {
-      return response.status(400).json({ message: "Name, password, and email or phone are required" });
+    if (!name?.trim() || !password || !normalizedPhone) {
+      return response.status(400).json({ message: "Name, phone number, and password are required" });
+    }
+
+    const existingPhoneUser = await User.findOne({ phone: normalizedPhone }).select("_id");
+    if (existingPhoneUser) {
+      return response.status(409).json({ message: "This phone number is already registered" });
     }
 
     const passwordHash = await User.hashPassword(password);
     const user = await User.create({
-      name,
-      email,
-      phone,
+      name: name.trim(),
+      email: normalizedEmail || undefined,
+      phone: normalizedPhone,
       passwordHash,
       role: "user"
     });

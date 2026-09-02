@@ -10,7 +10,10 @@ function errorHandler(error, _request, response, _next) {
   }
 
   if (error.code === 11000) {
-    return response.status(409).json({ message: "Email or phone already exists" });
+    if (error.keyPattern?.phone || error.keyValue?.phone) {
+      return response.status(409).json({ message: "This phone number is already registered" });
+    }
+    return response.status(409).json({ message: "This account detail already exists" });
   }
 
   return response.status(error.statusCode || 500).json({

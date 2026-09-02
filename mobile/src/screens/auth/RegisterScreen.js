@@ -15,11 +15,28 @@ export default function RegisterScreen({ navigation }) {
   }
 
   async function handleRegister() {
+    if (!values.name.trim()) {
+      Alert.alert("Name needed", "Please enter your full name.");
+      return;
+    }
+
+    if (!values.phone.trim()) {
+      Alert.alert("Phone number needed", "Please enter your phone number.");
+      return;
+    }
+
+    if (!values.password) {
+      Alert.alert("Password needed", "Please enter a password.");
+      return;
+    }
+
     try {
       await register(values);
-      navigation.navigate("Shop");
+      Alert.alert("Registration successful", "Your account has been created.", [
+        { text: "OK", onPress: () => navigation.navigate("Shop") }
+      ]);
     } catch (error) {
-      Alert.alert("Registration failed", error.message);
+      Alert.alert("Registration failed", error.message || "Please check your details and try again.");
     }
   }
 
