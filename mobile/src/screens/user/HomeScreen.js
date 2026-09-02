@@ -35,38 +35,37 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.hero}>
-        <View style={styles.topRow}>
-          <View style={styles.locationRow}>
-            <MapPin size={18} color={colors.greenDark} />
-            <Text style={styles.location}>Delivering fresh groceries</Text>
-          </View>
-          {!user ? (
-            <View style={styles.authRow}>
-              <Text style={styles.authButton} onPress={() => navigation.navigate("Login")}>Login</Text>
-              <Text style={styles.signupButton} onPress={() => navigation.navigate("Register")}>Sign up</Text>
-            </View>
-          ) : null}
-        </View>
+      <View style={styles.header}>
         <Image source={logo} style={styles.logo} resizeMode="contain" />
-        <Text style={styles.heroText}>Daily essentials, fruits, snacks, dairy and more.</Text>
+        {!user ? (
+          <View style={styles.authRow}>
+            <Text style={styles.authButton} onPress={() => navigation.navigate("Login")}>Login</Text>
+            <Text style={styles.signupButton} onPress={() => navigation.navigate("Register")}>Sign up</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={styles.deliveryRow}>
+        <MapPin size={15} color={colors.greenDark} />
+        <Text style={styles.location}>Delivering fresh groceries</Text>
       </View>
       <View style={styles.searchBox}>
         <Search size={18} color={colors.muted} />
         <TextInput style={styles.searchInput} placeholder="Search in Zest Fresh" editable={false} />
       </View>
-      <View style={styles.headingRow}>
-        <Sparkles size={19} color={colors.green} />
-        <Text style={styles.heading}>Fresh picks near you</Text>
+      <View style={styles.categoryBand}>
+        <View style={styles.headingRow}>
+          <Sparkles size={18} color={colors.green} />
+          <Text style={styles.heading}>Fresh picks near you</Text>
+        </View>
+        <FlatList
+          data={categories}
+          horizontal
+          keyExtractor={(item) => item}
+          contentContainerStyle={styles.categories}
+          renderItem={({ item }) => <Text style={styles.category}>{item}</Text>}
+          showsHorizontalScrollIndicator={false}
+        />
       </View>
-      <FlatList
-        data={categories}
-        horizontal
-        keyExtractor={(item) => item}
-        contentContainerStyle={styles.categories}
-        renderItem={({ item }) => <Text style={styles.category}>{item}</Text>}
-        showsHorizontalScrollIndicator={false}
-      />
       <FlatList
         key={isSingleColumn ? "single" : "double"}
         data={products}
@@ -91,41 +90,36 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 22,
+    paddingTop: 14,
     paddingHorizontal: 16,
     backgroundColor: colors.surface
   },
-  hero: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: colors.greenSoft,
-    borderWidth: 1,
-    borderColor: colors.line
-  },
-  topRow: {
+  header: {
+    minHeight: 48,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: 10
+    gap: 12,
+    marginBottom: 6
   },
-  locationRow: {
+  deliveryRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    flex: 1
+    gap: 5,
+    marginBottom: 8
   },
   location: {
     color: colors.greenDark,
-    fontWeight: "800"
+    fontWeight: "800",
+    fontSize: 13
   },
   authRow: {
     flexDirection: "row",
     gap: 8
   },
   authButton: {
-    paddingHorizontal: 11,
-    paddingVertical: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 8,
     color: colors.greenDark,
     backgroundColor: colors.white,
@@ -133,8 +127,8 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   signupButton: {
-    paddingHorizontal: 11,
-    paddingVertical: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 8,
     color: colors.white,
     backgroundColor: colors.green,
@@ -142,18 +136,11 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   logo: {
-    width: 158,
-    height: 58,
-    marginTop: 8,
-    alignSelf: "flex-start"
-  },
-  heroText: {
-    color: colors.muted,
-    marginTop: 2,
-    fontWeight: "600"
+    width: 146,
+    height: 42
   },
   searchBox: {
-    height: 44,
+    height: 42,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.line,
@@ -162,7 +149,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 10
+    marginBottom: 10
   },
   searchInput: {
     flex: 1,
@@ -172,20 +159,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 12
+    marginBottom: 8
   },
   heading: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
     color: colors.ink
   },
   categories: {
     gap: 8,
-    paddingVertical: 10
+    paddingBottom: 10
+  },
+  categoryBand: {
+    marginBottom: 4
   },
   category: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     backgroundColor: colors.greenSoft,
     color: colors.greenDark,
     borderRadius: 8,
