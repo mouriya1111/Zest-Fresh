@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import Button from "../../components/Button";
 import { useAuth } from "../../context/AuthContext";
 import { colors } from "../../theme/colors";
@@ -9,34 +9,47 @@ const logo = require("../../../assets/zestfresh-logo.png");
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
   const [values, setValues] = useState({ name: "", email: "", phone: "", password: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [popup, setPopup] = useState(null);
 
   function setField(field, value) {
     setValues((current) => ({ ...current, [field]: value }));
   }
 
+  function showPopup(title, message, onClose) {
+    setPopup({ title, message, onClose });
+  }
+
+  function closePopup() {
+    const onClose = popup?.onClose;
+    setPopup(null);
+    onClose?.();
+  }
+
   async function handleRegister() {
     if (!values.name.trim()) {
-      Alert.alert("Name needed", "Please enter your full name.");
+      showPopup("Name needed", "Please enter your full name.");
       return;
     }
 
     if (!values.phone.trim()) {
-      Alert.alert("Phone number needed", "Please enter your phone number.");
+      showPopup("Phone number needed", "Please enter your phone number.");
       return;
     }
 
     if (!values.password) {
-      Alert.alert("Password needed", "Please enter a password.");
+      showPopup("Password needed", "Please enter a password.");
       return;
     }
 
     try {
+      setSubmitting(true);
       await register(values);
-      Alert.alert("Registration successful", "Your account has been created.", [
-        { text: "OK", onPress: () => navigation.navigate("Shop") }
-      ]);
+      showPopup("Registration successful", "Your account has been created.", () => navigation.navigate("Shop"));
     } catch (error) {
-      Alert.alert("Registration failed", error.message || "Please check your details and try again.");
+      showPopup("Registration failed", error.message || "Please check your details and try again.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -52,7 +65,18 @@ export default function RegisterScreen({ navigation }) {
       <TextInput style={styles.input} value={values.email} onChangeText={(text) => setField("email", text)} placeholder="Email" autoCapitalize="none" />
       <TextInput style={styles.input} value={values.phone} onChangeText={(text) => setField("phone", text)} placeholder="Phone" keyboardType="phone-pad" />
       <TextInput style={styles.input} value={values.password} onChangeText={(text) => setField("password", text)} placeholder="Password" secureTextEntry />
-      <Button title="Register" onPress={handleRegister} />
+      <Button title={submitting ? "Registering..." : "Register"} onPress={handleRegister} disabled={submitting} />
+      <Modal transparent visible={Boolean(popup)} animationType="fade" onRequestClose={closePopup}>
+        <View style={styles.popupBackdrop}>
+          <View style={styles.popupCard}>
+            <Text style={styles.popupTitle}>{popup?.title}</Text>
+            <Text style={styles.popupMessage}>{popup?.message}</Text>
+            <Pressable style={styles.popupButton} onPress={closePopup}>
+              <Text style={styles.popupButtonText}>OK</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -102,5 +126,47 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     backgroundColor: colors.white,
     paddingHorizontal: 14
+  },
+  popupBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 22
+  },
+  popupCard: {
+    width: "100%",
+    maxWidth: 360,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8
+  },
+  popupTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: colors.ink,
+    marginBottom: 8
+  },
+  popupMessage: {
+    color: colors.muted,
+    fontWeight: "700",
+    lineHeight: 22,
+    marginBottom: 18
+  },
+  popupButton: {
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: colors.green,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  popupButtonText: {
+    color: colors.white,
+    fontWeight: "900"
   }
 });
