@@ -91,12 +91,13 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 48,
+    paddingTop: 22,
     paddingHorizontal: 16,
     backgroundColor: colors.surface
   },
   hero: {
-    padding: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: 8,
     backgroundColor: colors.greenSoft,
     borderWidth: 1,
@@ -123,8 +124,8 @@ const styles = StyleSheet.create({
     gap: 8
   },
   authButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
     borderRadius: 8,
     color: colors.greenDark,
     backgroundColor: colors.white,
@@ -132,8 +133,8 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   signupButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
     borderRadius: 8,
     color: colors.white,
     backgroundColor: colors.green,
@@ -141,18 +142,18 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   logo: {
-    width: 210,
-    height: 104,
+    width: 158,
+    height: 58,
     marginTop: 8,
     alignSelf: "flex-start"
   },
   heroText: {
     color: colors.muted,
-    marginTop: 4,
+    marginTop: 2,
     fontWeight: "600"
   },
   searchBox: {
-    height: 48,
+    height: 44,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.line,
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 12
+    marginTop: 10
   },
   searchInput: {
     flex: 1,
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 16
+    marginTop: 12
   },
   heading: {
     fontSize: 20,
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
   },
   categories: {
     gap: 8,
-    paddingVertical: 14
+    paddingVertical: 10
   },
   category: {
     paddingHorizontal: 14,
