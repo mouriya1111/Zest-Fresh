@@ -5,6 +5,18 @@ import { api } from "../api/client";
 const CartContext = createContext(null);
 const CART_KEY = "zestFreshCart";
 
+function getVariantKey(variant) {
+  return variant?.label || "default";
+}
+
+function getCartKey(productId, variant) {
+  return `${productId}::${getVariantKey(variant)}`;
+}
+
+function getItemPrice(item) {
+  return item.variant?.price ?? item.product.price;
+}
+
 export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
   const [hydrated, setHydrated] = useState(false);
@@ -13,7 +25,11 @@ export function CartProvider({ children }) {
     AsyncStorage.getItem(CART_KEY)
       .then((savedCart) => {
         if (savedCart) {
-          setItems(JSON.parse(savedCart));
+          const parsedItems = JSON.parse(savedCart);
+          setItems(parsedItems.map((item) => ({
+            ...item,
+            cartKey: item.cartKey || getCartKey(item.product._id, item.variant)
+          })));
         }
       })
       .catch(() => null)
@@ -26,29 +42,31 @@ export function CartProvider({ children }) {
     }
   }, [items, hydrated]);
 
-  function addToCart(product) {
+  function addToCart(product, variant = null) {
+    const cartKey = getCartKey(product._id, variant);
+
     setItems((current) => {
-      const existing = current.find((item) => item.product._id === product._id);
+      const existing = current.find((item) => item.cartKey === cartKey);
 
       if (existing) {
         return current.map((item) =>
-          item.product._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
+          item.cartKey === cartKey ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
 
-      return current.concat({ product, quantity: 1 });
+      return current.concat({ cartKey, product, variant, quantity: 1 });
     });
   }
 
-  function removeFromCart(productId) {
-    setItems((current) => current.filter((item) => item.product._id !== productId));
+  function removeFromCart(cartKey) {
+    setItems((current) => current.filter((item) => item.cartKey !== cartKey));
   }
 
-  function changeQuantity(productId, delta) {
+  function changeQuantity(cartKey, delta) {
     setItems((current) =>
       current
         .map((item) =>
-          item.product._id === productId
+          item.cartKey === cartKey
             ? { ...item, quantity: Math.max(item.quantity + delta, 0) }
             : item
         )
@@ -62,6 +80,7 @@ export function CartProvider({ children }) {
       paymentMethod,
       items: items.map((item) => ({
         productId: item.product._id,
+        variantLabel: item.variant?.label,
         quantity: item.quantity
       }))
     };
@@ -71,10 +90,10 @@ export function CartProvider({ children }) {
     return data.order;
   }
 
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0);
 
   const value = useMemo(
-    () => ({ items, subtotal, addToCart, removeFromCart, changeQuantity, placeOrder }),
+    () => ({ items, subtotal, addToCart, removeFromCart, changeQuantity, placeOrder, getCartKey }),
     [items, subtotal]
   );
 

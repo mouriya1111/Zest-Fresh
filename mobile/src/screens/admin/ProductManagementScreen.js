@@ -10,6 +10,10 @@ const emptyForm = {
   category: "",
   unit: "",
   price: "",
+  variants: [
+    { label: "500 g", unit: "500 g", price: "", discountText: "" },
+    { label: "1 kg", unit: "1 kg", price: "", discountText: "" }
+  ],
   totalQuantity: "",
   imageUrl: "",
   soldByWeight: false,
@@ -34,6 +38,29 @@ export default function ProductManagementScreen() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  function setVariantField(index, field, value) {
+    setForm((current) => ({
+      ...current,
+      variants: current.variants.map((variant, variantIndex) =>
+        variantIndex === index ? { ...variant, [field]: value } : variant
+      )
+    }));
+  }
+
+  function addVariantRow() {
+    setForm((current) => ({
+      ...current,
+      variants: current.variants.concat({ label: "", unit: "", price: "", discountText: "" })
+    }));
+  }
+
+  function removeVariantRow(index) {
+    setForm((current) => ({
+      ...current,
+      variants: current.variants.filter((_variant, variantIndex) => variantIndex !== index)
+    }));
+  }
+
   function resetForm() {
     setForm(emptyForm);
     setEditingProduct(null);
@@ -46,6 +73,17 @@ export default function ProductManagementScreen() {
       category: product.category || "",
       unit: product.soldBy === "weight" ? "" : product.unit || "",
       price: String(product.price ?? ""),
+      variants: product.variants?.length
+        ? product.variants.map((variant) => ({
+          label: variant.label || "",
+          unit: variant.unit || "",
+          price: String(variant.price ?? ""),
+          discountText: variant.discountText || ""
+        }))
+        : [
+          { label: "500 g", unit: "500 g", price: "", discountText: "" },
+          { label: product.unit || "1 kg", unit: product.unit || "1 kg", price: String(product.price ?? ""), discountText: "" }
+        ],
       totalQuantity: String(product.remainingStock ?? 0),
       imageUrl: product.imageUrl || "",
       soldByWeight: product.soldBy === "weight",
@@ -63,14 +101,24 @@ export default function ProductManagementScreen() {
     }
 
     try {
-      const { soldByWeight, weightStepGrams, ...productFields } = form;
+      const { soldByWeight, weightStepGrams, variants, ...productFields } = form;
       const availableStock = Number(form.totalQuantity);
+      const cleanedVariants = variants
+        .filter((variant) => variant.label.trim() && variant.unit.trim() && Number(variant.price) >= 0 && variant.price !== "")
+        .map((variant, index) => ({
+          label: variant.label.trim(),
+          unit: variant.unit.trim(),
+          price: Number(variant.price),
+          discountText: variant.discountText.trim(),
+          isDefault: index === 0
+        }));
       const payload = {
         ...productFields,
         soldBy: soldByWeight ? "weight" : "unit",
         weightStepGrams: soldByWeight ? Number(weightStepGrams) : null,
         unit: soldByWeight ? `${Number(weightStepGrams)} g` : form.unit,
         price: Number(form.price),
+        variants: cleanedVariants,
         totalQuantity: editingProduct ? editingProduct.quantitySold + availableStock : availableStock,
         lowStockThreshold: Number(form.lowStockThreshold || 0),
         isActive: form.isActive
@@ -141,6 +189,45 @@ export default function ProductManagementScreen() {
             <TextInput style={[styles.input, styles.flexInput]} value={form.price} onChangeText={(text) => setField("price", text)} placeholder="Price" keyboardType="number-pad" />
           </View>
         )}
+        <View style={styles.variantPanel}>
+          <View style={styles.variantHeader}>
+            <View>
+              <Text style={styles.toggleTitle}>Weight / quantity options</Text>
+              <Text style={styles.toggleMeta}>Add prices and offers for 500 g, 1 kg, 5 kg, or any pack size.</Text>
+            </View>
+            <Button title="Add option" variant="ghost" onPress={addVariantRow} style={styles.optionButton} />
+          </View>
+          {form.variants.map((variant, index) => (
+            <View style={styles.variantRow} key={`${index}-${variant.label}`}>
+              <TextInput
+                style={[styles.input, styles.variantInput]}
+                value={variant.label}
+                onChangeText={(text) => setVariantField(index, "label", text)}
+                placeholder="Button label, e.g. 1 kg"
+              />
+              <TextInput
+                style={[styles.input, styles.variantInput]}
+                value={variant.unit}
+                onChangeText={(text) => setVariantField(index, "unit", text)}
+                placeholder="Cart unit"
+              />
+              <TextInput
+                style={[styles.input, styles.priceInput]}
+                value={variant.price}
+                onChangeText={(text) => setVariantField(index, "price", text)}
+                placeholder="Price"
+                keyboardType="number-pad"
+              />
+              <TextInput
+                style={[styles.input, styles.variantInput]}
+                value={variant.discountText}
+                onChangeText={(text) => setVariantField(index, "discountText", text)}
+                placeholder="Offer, e.g. Save ₹20"
+              />
+              <Button title="Remove" variant="ghost" onPress={() => removeVariantRow(index)} style={styles.removeOption} />
+            </View>
+          ))}
+        </View>
         <TextInput
           style={styles.input}
           value={form.totalQuantity}
@@ -179,7 +266,9 @@ export default function ProductManagementScreen() {
             <View style={styles.productInfo}>
               <Text style={styles.name}>{item.name}</Text>
               <Text style={styles.meta}>
-                {item.soldBy === "weight" ? `₹${item.price} per ${item.weightStepGrams} g` : `₹${item.price} · ${item.unit}`} · {item.category} · Stock {item.remainingStock}
+                {item.variants?.length
+                  ? item.variants.map((variant) => `${variant.label} ₹${variant.price}`).join(" / ")
+                  : item.soldBy === "weight" ? `₹${item.price} per ${item.weightStepGrams} g` : `₹${item.price} · ${item.unit}`} · {item.category} · Stock {item.remainingStock}
               </Text>
               <Text style={[styles.availability, item.isActive === false && styles.unavailable]}>
                 {item.isActive === false ? "Hidden from customers" : "Available"}
@@ -214,6 +303,13 @@ const styles = StyleSheet.create({
   toggleCopy: { flex: 1 },
   toggleTitle: { color: colors.ink, fontWeight: "900" },
   toggleMeta: { color: colors.muted, fontSize: 12, marginTop: 3 },
+  variantPanel: { borderRadius: 8, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, padding: 12, gap: 10 },
+  variantHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 },
+  optionButton: { height: 38 },
+  variantRow: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
+  variantInput: { flexGrow: 1, minWidth: 130 },
+  priceInput: { width: 100 },
+  removeOption: { height: 42 },
   pricePreview: { color: colors.greenDark, backgroundColor: colors.greenSoft, padding: 10, borderRadius: 8, fontWeight: "900" },
   imagePaste: { height: 48, borderRadius: 8, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8 },
   imageInput: { flex: 1, height: "100%" },

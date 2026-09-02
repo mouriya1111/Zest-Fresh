@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Banknote, CreditCard, ShoppingBag, Smartphone } from "lucide-react-native";
 import Button from "../../components/Button";
 import { useCart } from "../../context/CartContext";
@@ -10,6 +10,7 @@ export default function CartScreen({ navigation }) {
   const { items, subtotal, removeFromCart, changeQuantity, placeOrder } = useCart();
   const { user } = useAuth();
   const [placing, setPlacing] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const deliveryFee = subtotal >= 499 || subtotal === 0 ? 0 : 29;
   const orderTotal = subtotal + deliveryFee;
   const [address, setAddress] = useState({
@@ -30,11 +31,7 @@ export default function CartScreen({ navigation }) {
     }
 
     if (!user) {
-      Alert.alert("Login required", "Please login or create an account to place your order.", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Login", onPress: () => navigation.navigate("Login") },
-        { text: "Sign up", onPress: () => navigation.navigate("Register") }
-      ]);
+      setShowLoginPrompt(true);
       return;
     }
 
@@ -59,6 +56,7 @@ export default function CartScreen({ navigation }) {
   }
 
   return (
+    <>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <View style={styles.headerIcon}>
@@ -71,20 +69,19 @@ export default function CartScreen({ navigation }) {
       </View>
       {items.length ? (
         items.map((item) => (
-          <View style={styles.item} key={item.product._id}>
-            <View>
+          <View style={styles.item} key={item.cartKey || item.product._id}>
+            <View style={styles.itemCopy}>
               <Text style={styles.itemName}>{item.product.name}</Text>
               <Text style={styles.itemMeta}>
-                {item.product.soldBy === "weight"
-                  ? `${item.quantity * item.product.weightStepGrams} g selected · ₹${item.product.price * item.quantity}`
-                  : `${item.quantity} × ₹${item.product.price} · ₹${item.product.price * item.quantity}`}
+                {item.quantity} × {item.variant?.label || item.product.unit} · ₹{(item.variant?.price ?? item.product.price) * item.quantity}
               </Text>
+              {item.variant?.discountText ? <Text style={styles.itemOffer}>{item.variant.discountText}</Text> : null}
             </View>
             <View style={styles.qtyBox}>
-              <Button title="-" variant="ghost" onPress={() => changeQuantity(item.product._id, -1)} style={styles.qtyButton} />
+              <Button title="-" variant="ghost" onPress={() => changeQuantity(item.cartKey || item.product._id, -1)} style={styles.qtyButton} />
               <Text style={styles.qty}>{item.quantity}</Text>
-              <Button title="+" onPress={() => changeQuantity(item.product._id, 1)} style={styles.qtyButton} />
-              <Button title="Remove" variant="ghost" onPress={() => removeFromCart(item.product._id)} style={styles.remove} />
+              <Button title="+" onPress={() => changeQuantity(item.cartKey || item.product._id, 1)} style={styles.qtyButton} />
+              <Button title="Remove" variant="ghost" onPress={() => removeFromCart(item.cartKey || item.product._id)} style={styles.remove} />
             </View>
           </View>
         ))
@@ -146,6 +143,37 @@ export default function CartScreen({ navigation }) {
       </View>
       <Button title={placing ? "Placing order..." : "Place COD order"} onPress={handlePlaceOrder} disabled={placing || !items.length} />
     </ScrollView>
+    <Modal visible={showLoginPrompt} transparent animationType="fade" onRequestClose={() => setShowLoginPrompt(false)}>
+      <View style={styles.modalBackdrop}>
+        <View style={styles.loginCard}>
+          <Text style={styles.loginTitle}>Login to place your order</Text>
+          <Text style={styles.loginText}>Your basket is saved. Login or create an account to add address and confirm delivery.</Text>
+          <View style={styles.loginActions}>
+            <Button
+              title="Login"
+              onPress={() => {
+                setShowLoginPrompt(false);
+                navigation.navigate("Login");
+              }}
+              style={styles.loginAction}
+            />
+            <Button
+              title="Sign up"
+              variant="ghost"
+              onPress={() => {
+                setShowLoginPrompt(false);
+                navigation.navigate("Register");
+              }}
+              style={styles.loginAction}
+            />
+          </View>
+          <Pressable onPress={() => setShowLoginPrompt(false)} style={styles.closePrompt}>
+            <Text style={styles.closePromptText}>Continue shopping</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+    </>
   );
 }
 
@@ -205,6 +233,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12
   },
+  itemCopy: {
+    flex: 1
+  },
   itemName: {
     color: colors.ink,
     fontWeight: "900"
@@ -212,6 +243,12 @@ const styles = StyleSheet.create({
   itemMeta: {
     color: colors.muted,
     marginTop: 4
+  },
+  itemOffer: {
+    color: colors.green,
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: "900"
   },
   remove: {
     height: 36
@@ -342,6 +379,48 @@ const styles = StyleSheet.create({
   total: {
     color: colors.white,
     fontSize: 18,
+    fontWeight: "900"
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(16, 32, 21, 0.48)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 18
+  },
+  loginCard: {
+    width: "100%",
+    maxWidth: 420,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: colors.line
+  },
+  loginTitle: {
+    color: colors.ink,
+    fontSize: 22,
+    fontWeight: "900"
+  },
+  loginText: {
+    color: colors.muted,
+    marginTop: 8,
+    lineHeight: 21
+  },
+  loginActions: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 16
+  },
+  loginAction: {
+    flex: 1
+  },
+  closePrompt: {
+    alignItems: "center",
+    paddingTop: 14
+  },
+  closePromptText: {
+    color: colors.greenDark,
     fontWeight: "900"
   }
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Image, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { MapPin, Search, Sparkles } from "lucide-react-native";
 import ProductCard from "../../components/ProductCard";
@@ -13,7 +13,9 @@ const logo = require("../../../assets/zestfresh-logo.png");
 
 export default function HomeScreen({ navigation }) {
   const [products, setProducts] = useState([]);
-  const { items, addToCart, changeQuantity } = useCart();
+  const { width } = useWindowDimensions();
+  const isSingleColumn = width < 560;
+  const { items, addToCart, changeQuantity, getCartKey } = useCart();
   const { socket, user } = useAuth();
 
   function loadProducts() {
@@ -66,16 +68,18 @@ export default function HomeScreen({ navigation }) {
         showsHorizontalScrollIndicator={false}
       />
       <FlatList
+        key={isSingleColumn ? "single" : "double"}
         data={products}
         keyExtractor={(item) => item._id}
-        numColumns={2}
-        columnWrapperStyle={styles.grid}
+        numColumns={isSingleColumn ? 1 : 2}
+        columnWrapperStyle={isSingleColumn ? undefined : styles.grid}
         renderItem={({ item }) => (
           <ProductCard
             product={item}
-            quantity={items.find((cartItem) => cartItem.product._id === item._id)?.quantity || 0}
+            fullWidth={isSingleColumn}
+            getQuantity={(product, variant) => items.find((cartItem) => cartItem.cartKey === getCartKey(product._id, variant))?.quantity || 0}
             onAdd={addToCart}
-            onDecrease={(product) => changeQuantity(product._id, -1)}
+            onDecrease={(product, variant) => changeQuantity(getCartKey(product._id, variant), -1)}
           />
         )}
         showsVerticalScrollIndicator={false}
@@ -187,6 +191,7 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   },
   grid: {
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    gap: 12
   }
 });

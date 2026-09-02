@@ -1,5 +1,17 @@
 const mongoose = require("mongoose");
 
+const productVariantSchema = new mongoose.Schema(
+  {
+    label: { type: String, required: true, trim: true },
+    unit: { type: String, required: true, trim: true },
+    price: { type: Number, required: true, min: 0 },
+    compareAtPrice: { type: Number, min: 0 },
+    discountText: { type: String, default: "", trim: true },
+    isDefault: { type: Boolean, default: false }
+  },
+  { _id: false }
+);
+
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, index: "text" },
@@ -17,6 +29,7 @@ const productSchema = new mongoose.Schema(
     unit: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
     mrp: { type: Number, min: 0 },
+    variants: [productVariantSchema],
     imageUrl: String,
     imagePublicId: String,
     totalQuantity: { type: Number, required: true, min: 0, default: 0 },

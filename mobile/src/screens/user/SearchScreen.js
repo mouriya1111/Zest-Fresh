@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FlatList, StyleSheet, TextInput, View } from "react-native";
+import { FlatList, StyleSheet, TextInput, useWindowDimensions, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import ProductCard from "../../components/ProductCard";
 import { api } from "../../api/client";
@@ -9,7 +9,9 @@ import { colors } from "../../theme/colors";
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState([]);
-  const { items, addToCart, changeQuantity } = useCart();
+  const { width } = useWindowDimensions();
+  const isSingleColumn = width < 560;
+  const { items, addToCart, changeQuantity, getCartKey } = useCart();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -35,16 +37,18 @@ export default function SearchScreen() {
     <View style={styles.container}>
       <TextInput style={styles.input} value={query} onChangeText={search} placeholder="Search atta, milk, apples..." />
       <FlatList
+        key={isSingleColumn ? "single" : "double"}
         data={products}
         keyExtractor={(item) => item._id}
-        numColumns={2}
-        columnWrapperStyle={styles.grid}
+        numColumns={isSingleColumn ? 1 : 2}
+        columnWrapperStyle={isSingleColumn ? undefined : styles.grid}
         renderItem={({ item }) => (
           <ProductCard
             product={item}
-            quantity={items.find((cartItem) => cartItem.product._id === item._id)?.quantity || 0}
+            fullWidth={isSingleColumn}
+            getQuantity={(product, variant) => items.find((cartItem) => cartItem.cartKey === getCartKey(product._id, variant))?.quantity || 0}
             onAdd={addToCart}
-            onDecrease={(product) => changeQuantity(product._id, -1)}
+            onDecrease={(product, variant) => changeQuantity(getCartKey(product._id, variant), -1)}
           />
         )}
       />
@@ -69,6 +73,7 @@ const styles = StyleSheet.create({
     marginBottom: 14
   },
   grid: {
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    gap: 12
   }
 });

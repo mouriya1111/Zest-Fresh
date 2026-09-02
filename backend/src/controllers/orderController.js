@@ -29,14 +29,20 @@ async function createOrder(request, response, next) {
         return response.status(409).json({ message: `${product.name} is out of stock` });
       }
 
-      const lineTotal = product.price * item.quantity;
+      const selectedVariant = item.variantLabel && product.variants?.length
+        ? product.variants.find((variant) => variant.label === item.variantLabel)
+        : null;
+      const unit = selectedVariant?.unit || product.unit;
+      const price = selectedVariant?.price ?? product.price;
+      const lineTotal = price * item.quantity;
       subtotal += lineTotal;
       orderItems.push({
         product: product._id,
         name: product.name,
-        unit: product.unit,
+        unit,
+        variantLabel: selectedVariant?.label,
         quantity: item.quantity,
-        price: product.price,
+        price,
         imageUrl: product.imageUrl
       });
     }
