@@ -22,6 +22,31 @@ const emptyForm = {
   isActive: true
 };
 
+function parseGramSize(value) {
+  const match = String(value || "").toLowerCase().match(/(\d+(?:\.\d+)?)\s*(kg|kgs|kilogram|kilograms|g|gm|gms|gram|grams)\b/);
+
+  if (!match) {
+    return null;
+  }
+
+  const amount = Number(match[1]);
+  return match[2].startsWith("k") ? amount * 1000 : amount;
+}
+
+function getVariantPrice(variant, basePrice, baseGrams) {
+  if (variant.price !== "" && Number(variant.price) >= 0) {
+    return Number(variant.price);
+  }
+
+  const variantGrams = parseGramSize(variant.unit) || parseGramSize(variant.label);
+
+  if (baseGrams && variantGrams && Number(basePrice) >= 0) {
+    return Math.round(Number(basePrice) * (variantGrams / baseGrams));
+  }
+
+  return Number(basePrice || 0);
+}
+
 export default function ProductManagementScreen() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -109,12 +134,13 @@ export default function ProductManagementScreen() {
       setSaving(true);
       const { soldByWeight, weightStepGrams, variants, ...productFields } = form;
       const availableStock = Number(form.totalQuantity);
+      const baseGrams = soldByWeight ? Number(weightStepGrams) : parseGramSize(form.unit);
       const cleanedVariants = variants
-        .filter((variant) => variant.label.trim() && variant.unit.trim() && Number(variant.price) >= 0 && variant.price !== "")
+        .filter((variant) => variant.label.trim() && variant.unit.trim())
         .map((variant, index) => ({
           label: variant.label.trim(),
           unit: variant.unit.trim(),
-          price: Number(variant.price),
+          price: getVariantPrice(variant, form.price, baseGrams),
           discountText: variant.discountText.trim(),
           isDefault: index === 0
         }));

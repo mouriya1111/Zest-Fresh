@@ -1,6 +1,25 @@
 const Product = require("../models/Product");
 const configureCloudinary = require("../config/cloudinary");
 
+function normalizeVariants(body) {
+  if (!Array.isArray(body.variants)) {
+    return body;
+  }
+
+  const variants = body.variants
+    .filter((variant) => String(variant?.label || "").trim() && String(variant?.unit || "").trim())
+    .map((variant, index) => ({
+      label: String(variant.label).trim(),
+      unit: String(variant.unit).trim(),
+      price: Number(variant.price ?? body.price ?? 0),
+      compareAtPrice: variant.compareAtPrice === undefined || variant.compareAtPrice === "" ? undefined : Number(variant.compareAtPrice),
+      discountText: String(variant.discountText || "").trim(),
+      isDefault: index === 0
+    }));
+
+  return { ...body, variants };
+}
+
 function buildProductQuery(query) {
   const filter = { isActive: true };
 
@@ -37,7 +56,7 @@ async function listInventory(_request, response, next) {
 
 async function createProduct(request, response, next) {
   try {
-    const product = await Product.create(request.body);
+    const product = await Product.create(normalizeVariants(request.body));
     request.app.get("io")?.emit("products:changed", { action: "created", productId: product._id });
     response.status(201).json({ product });
   } catch (error) {
@@ -47,7 +66,7 @@ async function createProduct(request, response, next) {
 
 async function updateProduct(request, response, next) {
   try {
-    const product = await Product.findByIdAndUpdate(request.params.id, request.body, {
+    const product = await Product.findByIdAndUpdate(request.params.id, normalizeVariants(request.body), {
       new: true,
       runValidators: true
     });
