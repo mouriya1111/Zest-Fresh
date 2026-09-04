@@ -26,6 +26,7 @@ export default function ProductManagementScreen() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [saving, setSaving] = useState(false);
   const scrollRef = useRef(null);
 
   function loadProducts() {
@@ -95,12 +96,17 @@ export default function ProductManagementScreen() {
   }
 
   async function saveProduct() {
+    if (saving) {
+      return;
+    }
+
     if (form.soldByWeight && (!Number(form.weightStepGrams) || Number(form.weightStepGrams) < 1)) {
       Alert.alert("Weight needed", "Enter a valid gram quantity, such as 50.");
       return;
     }
 
     try {
+      setSaving(true);
       const { soldByWeight, weightStepGrams, variants, ...productFields } = form;
       const availableStock = Number(form.totalQuantity);
       const cleanedVariants = variants
@@ -133,6 +139,8 @@ export default function ProductManagementScreen() {
       loadProducts();
     } catch (error) {
       Alert.alert("Product not saved", error.message);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -258,7 +266,7 @@ export default function ProductManagementScreen() {
           <TextInput style={styles.imageInput} value={form.imageUrl} onChangeText={(text) => setField("imageUrl", text)} placeholder="Paste product image URL" autoCapitalize="none" />
         </View>
         {form.imageUrl ? <Image source={{ uri: form.imageUrl }} style={styles.preview} resizeMode="contain" /> : null}
-        <Button title={editingProduct ? "Save changes" : "Add item"} onPress={saveProduct} />
+        <Button title={saving ? "Saving..." : editingProduct ? "Save changes" : "Add item"} onPress={saveProduct} disabled={saving} />
       </View>
       {products.map((item) => (
         <View style={styles.row} key={item._id}>

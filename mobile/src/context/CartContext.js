@@ -6,11 +6,41 @@ const CartContext = createContext(null);
 const CART_KEY = "zestFreshCart";
 
 function getVariantKey(variant) {
-  return variant?.label || "default";
+  return String(variant?.label || variant?.unit || "default").trim().toLowerCase();
 }
 
 function getCartKey(productId, variant) {
   return `${productId}::${getVariantKey(variant)}`;
+}
+
+function normalizeCartItems(cartItems) {
+  const mergedItems = new Map();
+
+  cartItems.forEach((item) => {
+    const productId = item.product?._id;
+    const quantity = Number(item.quantity) || 0;
+
+    if (!productId || quantity <= 0) {
+      return;
+    }
+
+    const cartKey = getCartKey(productId, item.variant);
+    const existingItem = mergedItems.get(cartKey);
+
+    if (existingItem) {
+      mergedItems.set(cartKey, {
+        ...existingItem,
+        product: item.product,
+        variant: item.variant,
+        quantity: existingItem.quantity + quantity
+      });
+      return;
+    }
+
+    mergedItems.set(cartKey, { ...item, cartKey, quantity });
+  });
+
+  return Array.from(mergedItems.values());
 }
 
 function getItemPrice(item) {
@@ -26,10 +56,10 @@ export function CartProvider({ children }) {
       .then((savedCart) => {
         if (savedCart) {
           const parsedItems = JSON.parse(savedCart);
-          setItems(parsedItems.map((item) => ({
+          setItems(normalizeCartItems(parsedItems.map((item) => ({
             ...item,
             cartKey: item.cartKey || getCartKey(item.product._id, item.variant)
-          })));
+          }))));
         }
       })
       .catch(() => null)
@@ -46,15 +76,16 @@ export function CartProvider({ children }) {
     const cartKey = getCartKey(product._id, variant);
 
     setItems((current) => {
-      const existing = current.find((item) => item.cartKey === cartKey);
+      const normalizedItems = normalizeCartItems(current);
+      const existing = normalizedItems.find((item) => item.cartKey === cartKey);
 
       if (existing) {
-        return current.map((item) =>
+        return normalizedItems.map((item) =>
           item.cartKey === cartKey ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
 
-      return current.concat({ cartKey, product, variant, quantity: 1 });
+      return normalizedItems.concat({ cartKey, product, variant, quantity: 1 });
     });
   }
 
@@ -64,7 +95,7 @@ export function CartProvider({ children }) {
 
   function changeQuantity(cartKey, delta) {
     setItems((current) =>
-      current
+      normalizeCartItems(current)
         .map((item) =>
           item.cartKey === cartKey
             ? { ...item, quantity: Math.max(item.quantity + delta, 0) }
