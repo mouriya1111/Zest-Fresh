@@ -1,12 +1,16 @@
-import React, { useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Heart, Minus, Plus } from "lucide-react-native";
 import { colors } from "../theme/colors";
 
 export default function ProductCard({ product, fullWidth = false, getQuantity, onAdd, onDecrease, onFavorite }) {
   const variants = useMemo(() => {
     if (Array.isArray(product.variants) && product.variants.length) {
-      return product.variants;
+      const cleanVariants = product.variants.filter((variant) => variant.label && variant.unit);
+
+      if (cleanVariants.length) {
+        return cleanVariants;
+      }
     }
 
     return [{
@@ -21,24 +25,34 @@ export default function ProductCard({ product, fullWidth = false, getQuantity, o
   const quantity = getQuantity?.(product, selectedVariant) || 0;
   const selectedPrice = selectedVariant?.price ?? product.price;
 
+  useEffect(() => {
+    const stillExists = variants.some((variant) => variant.label === selectedVariant?.label);
+
+    if (!stillExists) {
+      setSelectedVariant(defaultVariant);
+    }
+  }, [defaultVariant, selectedVariant?.label, variants]);
+
   return (
     <View style={[styles.card, fullWidth && styles.fullCard, quantity > 0 && styles.selectedCard]}>
       {quantity > 0 ? <Text style={styles.selectedBadge}>Selected {quantity}</Text> : null}
-      <Image
-        source={{ uri: product.imageUrl || "https://placehold.co/240x180/E8F7EE/0B7A3B?text=Zest" }}
-        style={[styles.image, fullWidth && styles.fullImage]}
-        resizeMode="contain"
-      />
+      <View style={[styles.imageFrame, fullWidth && styles.fullImageFrame]}>
+        <Image
+          source={{ uri: product.imageUrl || "https://placehold.co/480x360/E8F7EE/0B7A3B?text=Zest" }}
+          style={styles.image}
+          resizeMode="cover"
+        />
+      </View>
       <View style={styles.body}>
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
         <Text style={styles.unit}>{selectedVariant?.unit || product.unit}</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.variantList}>
-          {variants.map((variant) => {
+        <View style={styles.variantList}>
+          {variants.map((variant, index) => {
             const active = variant.label === selectedVariant?.label;
 
             return (
               <Pressable
-                key={variant.label}
+                key={`${product._id}-${variant.label}-${variant.unit}-${index}`}
                 onPress={() => setSelectedVariant(variant)}
                 style={[styles.variantChip, active && styles.variantChipActive]}
               >
@@ -47,7 +61,7 @@ export default function ProductCard({ product, fullWidth = false, getQuantity, o
               </Pressable>
             );
           })}
-        </ScrollView>
+        </View>
         <View style={styles.row}>
           <Text style={styles.price}>₹{selectedPrice}</Text>
           <View style={styles.actions}>
@@ -116,14 +130,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "900"
   },
-  image: {
+  imageFrame: {
     width: "100%",
     height: 190,
-    backgroundColor: colors.white,
-    marginTop: 0
+    backgroundColor: colors.surface,
+    overflow: "hidden"
   },
-  fullImage: {
+  fullImageFrame: {
     height: 260
+  },
+  image: {
+    width: "100%",
+    height: "100%"
   },
   body: {
     padding: 10,
@@ -139,6 +157,8 @@ const styles = StyleSheet.create({
     fontSize: 12
   },
   variantList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 7,
     paddingVertical: 2
   },
