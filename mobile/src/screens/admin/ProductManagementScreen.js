@@ -47,6 +47,50 @@ function getVariantPrice(variant, basePrice, baseGrams) {
   return Number(basePrice || 0);
 }
 
+function buildDefaultVariants(product) {
+  const baseUnit = product.unit || (product.weightStepGrams ? `${product.weightStepGrams} g` : "");
+  const basePrice = String(product.price ?? "");
+  const baseGrams = product.soldBy === "weight" ? Number(product.weightStepGrams) : parseGramSize(baseUnit);
+  const variants = [
+    { label: baseUnit || "1 unit", unit: baseUnit || "1 unit", price: basePrice, discountText: "" }
+  ];
+
+  if (product.soldBy === "weight" && baseGrams && baseGrams < 1000) {
+    variants.push({
+      label: "1 kg",
+      unit: "1 kg",
+      price: String(Math.round(Number(product.price || 0) * (1000 / baseGrams))),
+      discountText: ""
+    });
+  }
+
+  return variants;
+}
+
+function normalizeVariantRows(variants, basePrice, baseGrams) {
+  const seen = new Set();
+
+  return variants
+    .filter((variant) => variant.label.trim() && variant.unit.trim())
+    .map((variant) => ({
+      label: variant.label.trim(),
+      unit: variant.unit.trim(),
+      price: getVariantPrice(variant, basePrice, baseGrams),
+      discountText: variant.discountText.trim()
+    }))
+    .filter((variant) => {
+      const key = `${variant.label.toLowerCase()}::${variant.unit.toLowerCase()}`;
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    })
+    .map((variant, index) => ({ ...variant, isDefault: index === 0 }));
+}
+
 export default function ProductManagementScreen() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -93,23 +137,31 @@ export default function ProductManagementScreen() {
   }
 
   function startEdit(product) {
+    const existingVariants = product.variants?.length
+      ? product.variants.map((variant) => ({
+        label: variant.label || "",
+        unit: variant.unit || "",
+        price: String(variant.price ?? ""),
+        discountText: variant.discountText || ""
+      }))
+      : buildDefaultVariants(product);
+
+    const baseUnit = product.soldBy === "weight" ? `${Number(product.weightStepGrams || 0)} g` : product.unit || "";
+    const baseGrams = product.soldBy === "weight" ? Number(product.weightStepGrams || 0) : parseGramSize(baseUnit);
+    const normalizedVariants = normalizeVariantRows(existingVariants, product.price, baseGrams);
+
     setEditingProduct(product);
     setForm({
       name: product.name || "",
       category: product.category || "",
       unit: product.soldBy === "weight" ? "" : product.unit || "",
       price: String(product.price ?? ""),
-      variants: product.variants?.length
-        ? product.variants.map((variant) => ({
-          label: variant.label || "",
-          unit: variant.unit || "",
-          price: String(variant.price ?? ""),
-          discountText: variant.discountText || ""
-        }))
-        : [
-          { label: "500 g", unit: "500 g", price: "", discountText: "" },
-          { label: product.unit || "1 kg", unit: product.unit || "1 kg", price: String(product.price ?? ""), discountText: "" }
-        ],
+      variants: normalizedVariants.length ? normalizedVariants.map((variant) => ({
+        label: variant.label,
+        unit: variant.unit,
+        price: String(variant.price),
+        discountText: variant.discountText
+      })) : buildDefaultVariants(product),
       totalQuantity: String(product.remainingStock ?? 0),
       imageUrl: product.imageUrl || "",
       soldByWeight: product.soldBy === "weight",
@@ -135,15 +187,13 @@ export default function ProductManagementScreen() {
       const { soldByWeight, weightStepGrams, variants, ...productFields } = form;
       const availableStock = Number(form.totalQuantity);
       const baseGrams = soldByWeight ? Number(weightStepGrams) : parseGramSize(form.unit);
-      const cleanedVariants = variants
-        .filter((variant) => variant.label.trim() && variant.unit.trim())
-        .map((variant, index) => ({
-          label: variant.label.trim(),
-          unit: variant.unit.trim(),
-          price: getVariantPrice(variant, form.price, baseGrams),
-          discountText: variant.discountText.trim(),
-          isDefault: index === 0
-        }));
+      const cleanedVariants = normalizeVariantRows(variants, form.price, baseGrams);
+
+      if (!cleanedVariants.length) {
+        Alert.alert("Quantity option needed", "Add at least one valid quantity option like 500 g or 1 kg.");
+        return;
+      }
+
       const payload = {
         ...productFields,
         soldBy: soldByWeight ? "weight" : "unit",
@@ -163,6 +213,7 @@ export default function ProductManagementScreen() {
       });
       resetForm();
       loadProducts();
+      Alert.alert("Product saved", "Your product changes were saved successfully.");
     } catch (error) {
       Alert.alert("Product not saved", error.message);
     } finally {
