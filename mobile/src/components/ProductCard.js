@@ -3,6 +3,50 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Heart, Minus, Plus } from "lucide-react-native";
 import { colors } from "../theme/colors";
 
+function parseGramSize(value) {
+  const match = String(value || "").toLowerCase().match(/(\d+(?:\.\d+)?)\s*(kg|kgs|kilogram|kilograms|g|gm|gms|gram|grams)\b/);
+
+  if (!match) {
+    return null;
+  }
+
+  const amount = Number(match[1]);
+  return match[2].startsWith("k") ? amount * 1000 : amount;
+}
+
+function formatGramLabel(grams) {
+  if (grams >= 1000 && grams % 1000 === 0) {
+    return `${grams / 1000} kg`;
+  }
+
+  return `${grams} g`;
+}
+
+function buildFallbackVariants(product) {
+  const baseLabel = product.unit || (product.weightStepGrams ? formatGramLabel(product.weightStepGrams) : "1 unit");
+  const basePrice = Number(product.price || 0);
+  const baseGrams = parseGramSize(baseLabel) || product.weightStepGrams;
+  const variants = [{
+    label: baseLabel,
+    unit: baseLabel,
+    price: basePrice,
+    discountText: "",
+    isDefault: true
+  }];
+
+  if (product.soldBy === "weight" && baseGrams && baseGrams < 1000) {
+    variants.push({
+      label: "1 kg",
+      unit: "1 kg",
+      price: Math.round(basePrice * (1000 / baseGrams)),
+      discountText: "",
+      isDefault: false
+    });
+  }
+
+  return variants;
+}
+
 export default function ProductCard({ product, fullWidth = false, getQuantity, onAdd, onDecrease, onFavorite }) {
   const variants = useMemo(() => {
     if (Array.isArray(product.variants) && product.variants.length) {
@@ -13,12 +57,7 @@ export default function ProductCard({ product, fullWidth = false, getQuantity, o
       }
     }
 
-    return [{
-      label: product.unit,
-      unit: product.unit,
-      price: product.price,
-      discountText: ""
-    }];
+    return buildFallbackVariants(product);
   }, [product]);
   const defaultVariant = variants.find((variant) => variant.isDefault) || variants[0];
   const [selectedVariant, setSelectedVariant] = useState(defaultVariant);
