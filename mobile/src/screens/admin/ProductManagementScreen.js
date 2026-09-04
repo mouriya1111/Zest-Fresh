@@ -47,9 +47,13 @@ function getVariantPrice(variant, basePrice, baseGrams) {
   return Number(basePrice || 0);
 }
 
+function getSellingPrice(product) {
+  return product.offerPrice ?? product.effectivePrice ?? product.price ?? "";
+}
+
 function buildDefaultVariants(product) {
   const baseUnit = product.unit || (product.weightStepGrams ? `${product.weightStepGrams} g` : "");
-  const basePrice = String(product.price ?? "");
+  const basePrice = String(getSellingPrice(product) ?? "");
   const baseGrams = product.soldBy === "weight" ? Number(product.weightStepGrams) : parseGramSize(baseUnit);
   const variants = [
     { label: baseUnit || "1 unit", unit: baseUnit || "1 unit", price: basePrice, discountText: "" }
@@ -59,7 +63,7 @@ function buildDefaultVariants(product) {
     variants.push({
       label: "1 kg",
       unit: "1 kg",
-      price: String(Math.round(Number(product.price || 0) * (1000 / baseGrams))),
+      price: String(Math.round(Number(getSellingPrice(product) || 0) * (1000 / baseGrams))),
       discountText: ""
     });
   }
@@ -137,6 +141,7 @@ export default function ProductManagementScreen() {
   }
 
   function startEdit(product) {
+    const sellingPrice = getSellingPrice(product);
     const existingVariants = product.variants?.length
       ? product.variants.map((variant) => ({
         label: variant.label || "",
@@ -148,14 +153,14 @@ export default function ProductManagementScreen() {
 
     const baseUnit = product.soldBy === "weight" ? `${Number(product.weightStepGrams || 0)} g` : product.unit || "";
     const baseGrams = product.soldBy === "weight" ? Number(product.weightStepGrams || 0) : parseGramSize(baseUnit);
-    const normalizedVariants = normalizeVariantRows(existingVariants, product.price, baseGrams);
+    const normalizedVariants = normalizeVariantRows(existingVariants, sellingPrice, baseGrams);
 
     setEditingProduct(product);
     setForm({
       name: product.name || "",
       category: product.category || "",
       unit: product.soldBy === "weight" ? "" : product.unit || "",
-      price: String(product.price ?? ""),
+      price: String(sellingPrice ?? ""),
       variants: normalizedVariants.length ? normalizedVariants.map((variant) => ({
         label: variant.label,
         unit: variant.unit,
@@ -200,6 +205,7 @@ export default function ProductManagementScreen() {
         weightStepGrams: soldByWeight ? Number(weightStepGrams) : null,
         unit: soldByWeight ? `${Number(weightStepGrams)} g` : form.unit,
         price: Number(form.price),
+        offerPrice: Number(form.price),
         variants: cleanedVariants,
         totalQuantity: editingProduct ? editingProduct.quantitySold + availableStock : availableStock,
         lowStockThreshold: Number(form.lowStockThreshold || 0),

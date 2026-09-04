@@ -33,7 +33,7 @@ async function createOrder(request, response, next) {
         ? product.variants.find((variant) => variant.label === item.variantLabel)
         : null;
       const unit = selectedVariant?.unit || product.unit;
-      const price = selectedVariant?.price ?? product.price;
+      const price = selectedVariant?.price ?? product.offerPrice ?? product.effectivePrice ?? product.price;
       const lineTotal = price * item.quantity;
       subtotal += lineTotal;
       orderItems.push({

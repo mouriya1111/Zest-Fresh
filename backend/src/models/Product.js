@@ -28,6 +28,8 @@ const productSchema = new mongoose.Schema(
     },
     unit: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
+    offerPrice: { type: Number, min: 0 },
+    discountPercent: { type: Number, min: 0, max: 100, default: 0 },
     mrp: { type: Number, min: 0 },
     variants: [productVariantSchema],
     imageUrl: String,
@@ -46,6 +48,10 @@ productSchema.virtual("remainingStock").get(function remainingStock() {
 
 productSchema.virtual("isLowStock").get(function isLowStock() {
   return this.remainingStock <= this.lowStockThreshold;
+});
+
+productSchema.virtual("effectivePrice").get(function effectivePrice() {
+  return this.offerPrice ?? this.price;
 });
 
 productSchema.set("toJSON", { virtuals: true });

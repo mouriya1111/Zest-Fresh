@@ -13,6 +13,10 @@ function getCartKey(productId, variant) {
   return `${productId}::${getVariantKey(variant)}`;
 }
 
+function getProductPrice(product) {
+  return Number(product?.offerPrice ?? product?.effectivePrice ?? product?.price ?? 0);
+}
+
 function normalizeCartItems(cartItems) {
   const mergedItems = new Map();
 
@@ -44,7 +48,7 @@ function normalizeCartItems(cartItems) {
 }
 
 function getItemPrice(item) {
-  return item.variant?.price ?? item.product.price;
+  return Number(item.variant?.price ?? getProductPrice(item.product));
 }
 
 export function CartProvider({ children }) {
@@ -81,7 +85,7 @@ export function CartProvider({ children }) {
 
       if (existing) {
         return normalizedItems.map((item) =>
-          item.cartKey === cartKey ? { ...item, quantity: item.quantity + 1 } : item
+          item.cartKey === cartKey ? { ...item, product, variant, quantity: item.quantity + 1 } : item
         );
       }
 

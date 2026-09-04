@@ -22,9 +22,13 @@ function formatGramLabel(grams) {
   return `${grams} g`;
 }
 
+function getProductPrice(product) {
+  return Number(product.offerPrice ?? product.effectivePrice ?? product.price ?? 0);
+}
+
 function buildFallbackVariants(product) {
   const baseLabel = product.unit || (product.weightStepGrams ? formatGramLabel(product.weightStepGrams) : "1 unit");
-  const basePrice = Number(product.price || 0);
+  const basePrice = getProductPrice(product);
   const baseGrams = parseGramSize(baseLabel) || product.weightStepGrams;
   const variants = [{
     label: baseLabel,
@@ -62,13 +66,18 @@ export default function ProductCard({ product, fullWidth = false, getQuantity, o
   const defaultVariant = variants.find((variant) => variant.isDefault) || variants[0];
   const [selectedVariant, setSelectedVariant] = useState(defaultVariant);
   const quantity = getQuantity?.(product, selectedVariant) || 0;
-  const selectedPrice = selectedVariant?.price ?? product.price;
+  const selectedPrice = selectedVariant?.price ?? getProductPrice(product);
 
   useEffect(() => {
-    const stillExists = variants.some((variant) => variant.label === selectedVariant?.label);
+    const latestVariant = variants.find((variant) => variant.label === selectedVariant?.label);
 
-    if (!stillExists) {
+    if (!latestVariant) {
       setSelectedVariant(defaultVariant);
+      return;
+    }
+
+    if (latestVariant.price !== selectedVariant?.price || latestVariant.unit !== selectedVariant?.unit || latestVariant.discountText !== selectedVariant?.discountText) {
+      setSelectedVariant(latestVariant);
     }
   }, [defaultVariant, selectedVariant?.label, variants]);
 

@@ -6,6 +6,10 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { colors } from "../../theme/colors";
 
+function getLinePrice(item) {
+  return Number(item.variant?.price ?? item.product.offerPrice ?? item.product.effectivePrice ?? item.product.price ?? 0);
+}
+
 export default function CartScreen({ navigation }) {
   const { items, subtotal, removeFromCart, changeQuantity, placeOrder } = useCart();
   const { user } = useAuth();
@@ -73,7 +77,7 @@ export default function CartScreen({ navigation }) {
             <View style={styles.itemCopy}>
               <Text style={styles.itemName}>{item.product.name}</Text>
               <Text style={styles.itemMeta}>
-                {item.quantity} × {item.variant?.label || item.product.unit} · ₹{(item.variant?.price ?? item.product.price) * item.quantity}
+                {item.quantity} × {item.variant?.label || item.product.unit} · ₹{getLinePrice(item) * item.quantity}
               </Text>
               {item.variant?.discountText ? <Text style={styles.itemOffer}>{item.variant.discountText}</Text> : null}
             </View>

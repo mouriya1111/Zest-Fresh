@@ -2,8 +2,10 @@ const Product = require("../models/Product");
 const configureCloudinary = require("../config/cloudinary");
 
 function normalizeVariants(body) {
+  const basePrice = Number(body.offerPrice ?? body.effectivePrice ?? body.price ?? 0);
+
   if (!Array.isArray(body.variants)) {
-    return body;
+    return { ...body, offerPrice: body.offerPrice ?? body.price };
   }
 
   const variants = body.variants
@@ -11,13 +13,13 @@ function normalizeVariants(body) {
     .map((variant, index) => ({
       label: String(variant.label).trim(),
       unit: String(variant.unit).trim(),
-      price: Number(variant.price ?? body.price ?? 0),
+      price: Number(variant.price ?? basePrice),
       compareAtPrice: variant.compareAtPrice === undefined || variant.compareAtPrice === "" ? undefined : Number(variant.compareAtPrice),
       discountText: String(variant.discountText || "").trim(),
       isDefault: index === 0
     }));
 
-  return { ...body, variants };
+  return { ...body, offerPrice: body.offerPrice ?? body.price, variants };
 }
 
 function buildProductQuery(query) {
