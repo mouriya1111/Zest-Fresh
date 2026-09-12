@@ -26,6 +26,16 @@ function getProductPrice(product) {
   return Number(product.offerPrice ?? product.effectivePrice ?? product.price ?? 0);
 }
 
+function formatPrice(value) {
+  const price = Number(value);
+
+  if (!Number.isFinite(price)) {
+    return "0";
+  }
+
+  return price % 1 === 0 ? String(price) : price.toFixed(2);
+}
+
 function buildFallbackVariants(product) {
   const baseLabel = product.unit || (product.weightStepGrams ? formatGramLabel(product.weightStepGrams) : "1 unit");
   const basePrice = getProductPrice(product);
@@ -105,13 +115,14 @@ export default function ProductCard({ product, fullWidth = false, getQuantity, o
                 style={[styles.variantChip, active && styles.variantChipActive]}
               >
                 <Text style={[styles.variantLabel, active && styles.variantLabelActive]}>{variant.label}</Text>
+                <Text style={[styles.variantPrice, active && styles.variantLabelActive]}>₹{formatPrice(variant.price ?? getProductPrice(product))}</Text>
                 {variant.discountText ? <Text style={[styles.discountText, active && styles.discountTextActive]}>{variant.discountText}</Text> : null}
               </Pressable>
             );
           })}
         </View>
         <View style={styles.row}>
-          <Text style={styles.price}>₹{selectedPrice}</Text>
+          <Text style={styles.price}>₹{formatPrice(selectedPrice)}</Text>
           <View style={styles.actions}>
             {onFavorite ? (
               <Pressable onPress={() => onFavorite(product)} style={styles.iconButton}>
@@ -230,6 +241,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "900"
   },
+  variantPrice: {
+    marginTop: 3,
+    color: colors.greenDark,
+    fontSize: 12,
+    fontWeight: "900"
+  },
   variantLabelActive: {
     color: colors.greenDark
   },
@@ -251,7 +268,7 @@ const styles = StyleSheet.create({
   price: {
     fontWeight: "900",
     color: colors.ink,
-    fontSize: 13,
+    fontSize: 18,
     flex: 1
   },
   actions: {
